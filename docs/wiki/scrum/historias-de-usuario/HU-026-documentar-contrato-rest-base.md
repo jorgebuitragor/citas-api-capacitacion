@@ -2,7 +2,7 @@
 id: HU-026
 tipo: historia-de-usuario
 titulo: "Documentar contrato REST base"
-estado: Pendiente de aprobación
+estado: Aprobada
 epica: "[[EP-009-contrato-rest-y-experiencia-web]]"
 esfuerzo: Alto
 sprint_sugerido: "Incremento 1"
@@ -44,5 +44,6 @@ relacionadas: ["[[HU-003-iniciar-y-cerrar-sesion]]", "[[HU-027-integrar-pantalla
 | DoD | Pendiente | — | — |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
+- 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
 ## Notas y decisiones
 - Esta HU habilita especificación; cada endpoint se aprueba con la HU funcional correspondiente.

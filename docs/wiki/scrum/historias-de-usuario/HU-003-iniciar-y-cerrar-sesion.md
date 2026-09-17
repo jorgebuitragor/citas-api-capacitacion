@@ -2,7 +2,7 @@
 id: HU-003
 tipo: historia-de-usuario
 titulo: "Iniciar y cerrar sesión"
-estado: Pendiente de aprobación
+estado: Aprobada
 epica: "[[EP-001-acceso-perfil-y-catalogos-fijos]]"
 esfuerzo: Alto
 sprint_sugerido: "Incremento 1"
@@ -47,5 +47,6 @@ relacionadas: ["[[HU-026-documentar-contrato-rest-base]]"]
 | DoD | Pendiente | — | — |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
+- 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
 ## Notas y decisiones
 - Duraciones, almacenamiento cliente y semántica de refresh/logout siguen abiertos.

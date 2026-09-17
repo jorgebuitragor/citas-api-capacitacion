@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:citas;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+app:
+  security:
+    access-secret: test-access-secret-must-be-at-least-32-bytes-long
+    refresh-secret: test-refresh-secret-must-be-at-least-32-bytes-long
+    access-ttl: PT30M
+    refresh-ttl: P14D
+    refresh-cookie-secure: true
+  cors:
+    allowed-origins: http://localhost:3000

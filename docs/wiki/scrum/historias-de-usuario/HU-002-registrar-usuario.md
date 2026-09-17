@@ -2,7 +2,7 @@
 id: HU-002
 tipo: historia-de-usuario
 titulo: "Registrar usuario"
-estado: Pendiente de aprobación
+estado: Aprobada
 epica: "[[EP-001-acceso-perfil-y-catalogos-fijos]]"
 esfuerzo: Alto
 sprint_sugerido: "Incremento 1"
@@ -47,5 +47,6 @@ relacionadas: ["[[HU-003-iniciar-y-cerrar-sesion]]"]
 | DoD | Pendiente | — | — |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
+- 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
 ## Notas y decisiones
 - Reglas de formato de documento/email deben formalizarse sin introducir PII real.

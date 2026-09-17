@@ -5,7 +5,15 @@ estado: Pendiente de aprobación
 
 # Mapa Scrum / Spec-Driven Development — Sistema ficticio de citas
 
-Este mapa traduce exclusivamente `PRD.md`, `RESTRICCIONES_TECNICAS.md` y `database/REQUISITOS_NORMALIZACION_3FN.md`. No es una autorización de implementación. Todas las HU están en **Pendiente de aprobación** y ninguna ha sido aprobada.
+Este mapa traduce exclusivamente `PRD.md`, `RESTRICCIONES_TECNICAS.md` y `database/REQUISITOS_NORMALIZACION_3FN.md`. No autoriza implementación fuera de las HU explícitamente aprobadas.
+
+## HU aprobadas para selección
+
+- [[HU-002-registrar-usuario]]
+- [[HU-003-iniciar-y-cerrar-sesion]]
+- [[HU-026-documentar-contrato-rest-base]]
+
+Las demás HU permanecen en `Pendiente de aprobación`.
 
 ## Contexto técnico constatado
 
