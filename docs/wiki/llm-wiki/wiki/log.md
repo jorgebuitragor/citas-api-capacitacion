@@ -25,3 +25,9 @@
 - DEC-002 aprobada por el usuario: la interfaz gráfica actual de `citas-web` (pantallas de registro/login en `src/App.tsx`, línea base en `current-web-baseline.md`) queda aprobada como fuente visual.
 - Cierra la pregunta abierta de HU-002/HU-003 sobre aprobación explícita de la fuente visual.
 - Queda pendiente la demostración end-to-end integrada frontend/backend, que es un asunto distinto de la aprobación visual.
+
+## [2026-09-22] learn | Smoke test de login contra backend real
+
+- HECHO: se validó manualmente el ciclo completo register → login → `/me` → refresh → logout contra el backend real (`fcv-citas-api-dev`) y MySQL real (`fcv-citas-mysql`), con un usuario sintético creado por el propio flujo de registro (`users.id=5`, `qa.login.demo@example.test`). Todas las respuestas coincidieron con el contrato: 201, 200, 200, 200, 204, y 401 en refresh tras logout y en `/me` sin token.
+- RIESGO DETECTADO Y RESUELTO: el proceso `mvn spring-boot:run` corría desde antes del último cambio en `UserEntity` y usaba metadata de Hibernate desactualizada (columna `created_at` legada), causando 401 espurios en registro/login. Se reinició el proceso; el contenedor no tiene hot-reload, así que cualquier cambio de entidades/config requiere reinicio manual.
+- RIESGO: `citas-api/src/main/resources/db/` (migraciones Flyway V1/V2) está completamente sin trackear en git; el esquema activo depende de archivos no versionados.

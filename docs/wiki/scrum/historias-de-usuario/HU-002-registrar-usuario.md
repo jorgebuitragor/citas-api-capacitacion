@@ -41,10 +41,10 @@ relacionadas: ["[[HU-003-iniciar-y-cerrar-sesion]]"]
 ## Evidencia de validación
 | Elemento | Resultado | Evidencia | Observación |
 |---|---|---|---|
-| CA-01 | Pendiente | — | — |
-| CA-02 | Pendiente | — | — |
-| CA-03 | Pendiente | — | — |
-| DoD | Pendiente | — | — |
+| CA-01 | Validado | Smoke test 2026-09-22: `POST /api/v1/auth/register` → 201, `users.id=5` | Contra backend/MySQL reales, no solo `AuthIntegrationTest` |
+| CA-02 | Validado | Smoke test 2026-09-22: registro repetido con mismo email → 409 | — |
+| CA-03 | Validado (automatizado) | `AuthIntegrationTest`, 2026-09-22, 5/5 pruebas | Password hash validado por prueba automatizada, no por smoke test manual |
+| DoD | Parcial | Backend validado; falta pantalla end-to-end en navegador | Ver PREGUNTA ABIERTA en trazabilidad-hu.md |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
 - 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.

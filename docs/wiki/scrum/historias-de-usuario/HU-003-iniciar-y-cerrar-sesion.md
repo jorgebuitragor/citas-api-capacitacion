@@ -41,10 +41,10 @@ relacionadas: ["[[HU-026-documentar-contrato-rest-base]]"]
 ## Evidencia de validación
 | Elemento | Resultado | Evidencia | Observación |
 |---|---|---|---|
-| CA-01 | Pendiente | — | — |
-| CA-02 | Pendiente | — | — |
-| CA-03 | Pendiente | — | — |
-| DoD | Pendiente | — | — |
+| CA-01 | Validado | Smoke test 2026-09-22: `POST /api/v1/auth/login` → 200, access+refresh+csrf emitidos | Contra backend/MySQL reales |
+| CA-02 | Validado | Smoke test 2026-09-22: `POST /api/v1/auth/refresh` rota tokens; refresh tras `logout` → 401 | — |
+| CA-03 | Validado | Smoke test 2026-09-22: `GET /api/v1/auth/me` sin token → 401; con token → 200 con rol correcto | — |
+| DoD | Parcial | Backend validado; falta consumo end-to-end desde `citas-web` en navegador | Ver PREGUNTA ABIERTA en trazabilidad-hu.md |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
 - 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
