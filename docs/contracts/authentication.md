@@ -13,6 +13,8 @@ Alcance: HU-002, HU-003 y HU-026. La API es la autoridad de autenticación; no e
 
 `GET /api/v1/auth/me` requiere `Authorization: Bearer <accessToken>` y devuelve sujeto y roles. Es un recurso mínimo para comprobar el contexto de autorización.
 
+Los identificadores se emiten como cadenas en JSON. Internamente corresponden a las claves numéricas `BIGINT` de `database/reference/db.sql`; este detalle no cambia el contrato del consumidor web.
+
 ## Sesión y seguridad
 
 - Access JWT: 30 minutos; refresh: 14 días. Los secretos se aportan por `JWT_ACCESS_SECRET` y `JWT_REFRESH_SECRET`.

@@ -59,16 +59,15 @@ public class AuthService {
         try { parsed = tokens.parseRefresh(rawRefreshToken); }
         catch (RuntimeException ex) { throw new AuthException(AuthException.Reason.INVALID_REFRESH); }
         Instant now = clock.instant();
-        RefreshSession old = sessions.findSessionById(parsed.sessionId())
-                .filter(s -> s.userId().equals(parsed.userId()) && s.isActiveAt(now) && constantTimeEquals(s.tokenHash(), sha256(rawRefreshToken)))
+        String tokenHash = sha256(rawRefreshToken);
+        RefreshSession old = sessions.findSessionByTokenHash(tokenHash)
+                .filter(s -> s.userId().equals(parsed.userId()) && s.isActiveAt(now) && constantTimeEquals(s.tokenHash(), tokenHash))
                 .orElseThrow(() -> new AuthException(AuthException.Reason.INVALID_REFRESH));
         UserAccount user = users.findById(parsed.userId()).filter(UserAccount::active)
                 .orElseThrow(() -> new AuthException(AuthException.Reason.INVALID_REFRESH));
         TokenPair next = tokens.issue(user.id(), user.roles());
-        String newSessionId = sessionId(next.refreshToken());
-        sessions.revoke(old.id(), newSessionId);
-        sessions.save(new RefreshSession(newSessionId, user.id(), sha256(next.refreshToken()), now,
-                next.refreshExpiresAt(), null, null));
+        sessions.revoke(old.tokenHash());
+        sessions.save(new RefreshSession(user.id(), sha256(next.refreshToken()), next.refreshExpiresAt(), null));
         return next;
     }
 
@@ -77,20 +76,18 @@ public class AuthService {
         TokenService.ParsedRefresh parsed;
         try { parsed = tokens.parseRefresh(rawRefreshToken); }
         catch (RuntimeException ex) { throw new AuthException(AuthException.Reason.INVALID_REFRESH); }
-        RefreshSession session = sessions.findSessionById(parsed.sessionId())
-                .filter(s -> s.userId().equals(parsed.userId()) && s.isActiveAt(clock.instant()) && constantTimeEquals(s.tokenHash(), sha256(rawRefreshToken)))
+        String tokenHash = sha256(rawRefreshToken);
+        RefreshSession session = sessions.findSessionByTokenHash(tokenHash)
+                .filter(s -> s.userId().equals(parsed.userId()) && s.isActiveAt(clock.instant()) && constantTimeEquals(s.tokenHash(), tokenHash))
                 .orElseThrow(() -> new AuthException(AuthException.Reason.INVALID_REFRESH));
-        sessions.revoke(session.id(), null);
+        sessions.revoke(session.tokenHash());
     }
 
     private TokenPair issueAndPersist(UserAccount user) {
         TokenPair pair = tokens.issue(user.id(), user.roles());
-        TokenService.ParsedRefresh parsed = tokens.parseRefresh(pair.refreshToken());
-        sessions.save(new RefreshSession(parsed.sessionId(), user.id(), sha256(pair.refreshToken()), clock.instant(),
-                pair.refreshExpiresAt(), null, null));
+        sessions.save(new RefreshSession(user.id(), sha256(pair.refreshToken()), pair.refreshExpiresAt(), null));
         return pair;
     }
-    private String sessionId(String refresh) { return tokens.parseRefresh(refresh).sessionId(); }
     private static String normalizeEmail(String value) { return normalized(value).toLowerCase(Locale.ROOT); }
     private static String normalized(String value) { return value.trim(); }
     private static String sha256(String value) {

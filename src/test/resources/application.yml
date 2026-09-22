@@ -1,13 +1,15 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:citas;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
-    username: sa
-    password:
+    url: ${DB_URL:jdbc:mysql://mysql:3306/citas_fcv_training}
+    username: ${DB_USERNAME:${DB_USER:citas_app}}
+    password: ${DB_PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: validate
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
 app:
   security:
     access-secret: test-access-secret-must-be-at-least-32-bytes-long

@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import java.util.List;
 import java.util.Map;
 import java.util.Date;
+import java.util.UUID;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,25 +33,22 @@ class AuthIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
     @Autowired JdbcTemplate jdbc;
+    private String testSuffix;
 
-    @BeforeEach void cleanUsers() {
-        jdbc.update("DELETE FROM refresh_sessions");
-        jdbc.update("DELETE FROM user_roles");
-        jdbc.update("DELETE FROM users");
-    }
+    @BeforeEach void isolateTestData() { testSuffix = UUID.randomUUID().toString().replace("-", ""); }
 
     @Test void registersUserWithBcryptHashAndUniqueIdentity() throws Exception {
-        register("ana@example.test", "CC", "1010").andExpect(status().isCreated()).andExpect(jsonPath("$.roles[0]").value("USER"));
-        String hash = jdbc.queryForObject("SELECT password_hash FROM users WHERE email = ?", String.class, "ana@example.test");
+        register(email("ana"), "CC", document("1010")).andExpect(status().isCreated()).andExpect(jsonPath("$.roles[0]").value("USER"));
+        String hash = jdbc.queryForObject("SELECT password_hash FROM users WHERE email = ?", String.class, email("ana"));
         assertThat(hash).startsWith("$2").doesNotContain("Secret123!");
-        register("ana@example.test", "CC", "2020").andExpect(status().isConflict());
-        register("other@example.test", "CC", "1010").andExpect(status().isConflict());
-        register("case@example.test", "cc", "1010").andExpect(status().isConflict());
+        register(email("ana"), "CC", document("2020")).andExpect(status().isConflict());
+        register(email("other"), "CC", document("1010")).andExpect(status().isConflict());
+        register(email("case"), "cc", document("1010")).andExpect(status().isConflict());
     }
 
     @Test void loginIssuesAccessAndSecureRefreshAndCsrfCookies() throws Exception {
-        register("ana@example.test", "CC", "1010");
-        MvcResult result = login("ana@example.test", "Secret123!").andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").isNotEmpty())
+        register(email("ana"), "CC", document("1010"));
+        MvcResult result = login(email("ana"), "Secret123!").andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(header().stringValues(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.hasItems(org.hamcrest.Matchers.containsString("refresh_token="), org.hamcrest.Matchers.containsString("XSRF-TOKEN=")))).andReturn();
         List<String> cookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
         assertThat(cookies.stream().filter(value -> value.startsWith("refresh_token=")).findFirst().orElseThrow())
@@ -58,8 +56,8 @@ class AuthIntegrationTest {
     }
 
     @Test void rotatesRefreshAndRejectsReuseOrInvalidCsrf() throws Exception {
-        register("ana@example.test", "CC", "1010");
-        Session initial = session(login("ana@example.test", "Secret123!").andReturn());
+        register(email("ana"), "CC", document("1010"));
+        Session initial = session(login(email("ana"), "Secret123!").andReturn());
         mvc.perform(post("/api/v1/auth/refresh").cookie(new Cookie("refresh_token", initial.refresh()), new Cookie("XSRF-TOKEN", initial.csrf())))
                 .andExpect(status().isUnauthorized());
         Session rotated = session(mvc.perform(post("/api/v1/auth/refresh").cookie(new Cookie("refresh_token", initial.refresh()), new Cookie("XSRF-TOKEN", initial.csrf()))
@@ -81,8 +79,8 @@ class AuthIntegrationTest {
     }
 
     @Test void logoutRevokesRefreshAndProtectedRoutesRequireAccess() throws Exception {
-        register("ana@example.test", "CC", "1010");
-        Session initial = session(login("ana@example.test", "Secret123!").andReturn());
+        register(email("ana"), "CC", document("1010"));
+        Session initial = session(login(email("ana"), "Secret123!").andReturn());
         mvc.perform(post("/api/v1/auth/logout").cookie(new Cookie("refresh_token", initial.refresh()), new Cookie("XSRF-TOKEN", initial.csrf()))
                 .header("X-CSRF-Token", initial.csrf())).andExpect(status().isNoContent())
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.containsString("Max-Age=0")));
@@ -91,11 +89,11 @@ class AuthIntegrationTest {
         mvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer invalid")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredAccess())).andExpect(status().isUnauthorized());
-        MvcResult login = login("ana@example.test", "Secret123!").andReturn();
+        MvcResult login = login(email("ana"), "Secret123!").andReturn();
         String access = mapper.readTree(login.getResponse().getContentAsString()).get("accessToken").asText();
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + access)).andExpect(status().isOk());
         mvc.perform(get("/api/v1/admin/probe").header(HttpHeaders.AUTHORIZATION, "Bearer " + access)).andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(Map.of("email", "ana@example.test", "password", "bad"))))
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(Map.of("email", email("ana"), "password", "bad"))))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -117,6 +115,8 @@ class AuthIntegrationTest {
     private org.springframework.test.web.servlet.ResultActions login(String email, String password) throws Exception {
         return mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(Map.of("email", email, "password", password))));
     }
+    private String email(String prefix) { return prefix + "." + testSuffix + "@example.test"; }
+    private String document(String prefix) { return prefix + testSuffix.substring(0, 20); }
     private Session session(MvcResult result) throws Exception {
         JsonNode body = mapper.readTree(result.getResponse().getContentAsString());
         String refresh = cookie(result, "refresh_token");

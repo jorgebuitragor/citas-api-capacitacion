@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/citas}
-    username: ${DB_USERNAME:citas}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/citas_fcv_training}
+    username: ${DB_USERNAME:${DB_USER:citas_app}}
     password: ${DB_PASSWORD:}
   jpa:
     hibernate:
@@ -9,6 +9,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
 app:
   security:
     access-secret: ${JWT_ACCESS_SECRET}

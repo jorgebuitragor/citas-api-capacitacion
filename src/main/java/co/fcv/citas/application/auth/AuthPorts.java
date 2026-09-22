@@ -17,7 +17,7 @@ public final class AuthPorts {
 
     public interface SessionRepository {
         void save(RefreshSession session);
-        Optional<RefreshSession> findSessionById(String id);
-        void revoke(String id, String replacementId);
+        Optional<RefreshSession> findSessionByTokenHash(String tokenHash);
+        void revoke(String tokenHash);
     }
 }
