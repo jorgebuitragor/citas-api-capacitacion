@@ -48,5 +48,7 @@ relacionadas: ["[[HU-003-iniciar-y-cerrar-sesion]]"]
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
 - 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
+- 2026-09-22 — DEC-002: usuario aprueba explícitamente la interfaz gráfica de la pantalla de registro (ver `citas-api/docs/wiki/llm-wiki/wiki/decisiones.md`).
 ## Notas y decisiones
 - Reglas de formato de documento/email deben formalizarse sin introducir PII real.
+- Interfaz gráfica aprobada (DEC-002); falta demostración end-to-end contra el backend corriendo.

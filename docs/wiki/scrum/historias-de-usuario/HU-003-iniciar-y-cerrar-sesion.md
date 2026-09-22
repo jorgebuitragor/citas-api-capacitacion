@@ -48,5 +48,7 @@ relacionadas: ["[[HU-026-documentar-contrato-rest-base]]"]
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
 - 2026-09-17 — Aprobada explícitamente por el usuario para selección e implementación posterior.
+- 2026-09-22 — DEC-002: usuario aprueba explícitamente la interfaz gráfica de la pantalla de login (ver `citas-api/docs/wiki/llm-wiki/wiki/decisiones.md`).
 ## Notas y decisiones
 - Duraciones, almacenamiento cliente y semántica de refresh/logout siguen abiertos.
+- Interfaz gráfica aprobada (DEC-002); falta demostración end-to-end contra el backend corriendo.
