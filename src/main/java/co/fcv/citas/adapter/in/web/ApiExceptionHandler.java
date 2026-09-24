@@ -1,6 +1,7 @@
 package co.fcv.citas.adapter.in.web;
 
 import co.fcv.citas.application.auth.AuthException;
+import co.fcv.citas.application.booking.BookingException;
 import java.net.URI;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,13 @@ class ApiExceptionHandler {
         };
     }
     @ExceptionHandler(InvalidCsrfException.class) ProblemDetail csrf() { return problem(HttpStatus.UNAUTHORIZED, "Authentication failed"); }
+    @ExceptionHandler(BookingException.class) ProblemDetail booking(BookingException ex) {
+        return switch (ex.reason()) {
+            case SLOT_UNAVAILABLE -> problem(HttpStatus.CONFLICT, ex.getMessage());
+            case NOT_FOUND -> problem(HttpStatus.NOT_FOUND, ex.getMessage());
+            case INVALID_REQUEST, INVALID_STATE -> problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+        };
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class) ProblemDetail validation(MethodArgumentNotValidException ex) {
         ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, "Validation failed");
         detail.setProperty("errors", ex.getBindingResult().getFieldErrors().stream().map(error -> Map.of("field", error.getField(), "message", error.getDefaultMessage())).toList());

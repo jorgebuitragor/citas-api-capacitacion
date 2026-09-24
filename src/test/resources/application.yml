@@ -9,7 +9,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    baseline-version: 1
+    baseline-version: 4
 app:
   security:
     access-secret: test-access-secret-must-be-at-least-32-bytes-long

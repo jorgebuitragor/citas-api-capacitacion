@@ -20,6 +20,6 @@ Lee el PRD en la carpeta raíz antes de inicializar Spring Boot.
 ## Esquema inicial
 
 `database/reference/db.sql` es la autoridad del esquema inicial y Docker lo
-carga al crear el volumen MySQL. Flyway registra ese estado como baseline `1`;
-las migraciones evolutivas deben iniciar en `V2__...` y no modificar el SQL de
-referencia.
+carga al crear el volumen MySQL. Flyway registra ese estado como baseline `4`;
+las migraciones evolutivas posteriores deben iniciar en `V5__...` y no modificar el SQL de
+referencia. Las migraciones V1–V4 existen para evolucionar volúmenes creados por la línea base anterior.

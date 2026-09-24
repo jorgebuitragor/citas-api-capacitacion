@@ -29,7 +29,9 @@ public class SecurityConfiguration {
     @Bean SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter, ObjectMapper mapper) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> { }).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/catalogs/**", "/api/v1/availability", "/api/v1/appointments").hasRole("USER")
+                        .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) -> problem(res, mapper, 401, "Authentication required"))
                         .accessDeniedHandler((req, res, ex) -> problem(res, mapper, 403, "Access denied")))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();

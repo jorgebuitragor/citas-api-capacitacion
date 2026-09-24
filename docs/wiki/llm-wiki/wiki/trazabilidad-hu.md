@@ -24,5 +24,5 @@
 
 ## Riesgo de versionado de migraciones
 
-- **RIESGO:** `citas-api/src/main/resources/db/` (carpeta `db/migration` con `V1__auth_schema.sql` y `V2__add_refresh_tokens.sql`) está completamente sin trackear en git (`git ls-files` no devuelve nada bajo esa ruta) pese a que el esquema activo depende de ella. Ningún commit existente la incluye.
+- **HECHO:** 2026-09-24 — las migraciones Flyway V1–V4 quedaron incorporadas al cambio S3; V3/V4 evolucionan el volumen legado y los volúmenes nuevos usan la baseline `4` del esquema de referencia.
 - **PREGUNTA ABIERTA:** decidir si se commitea tal cual o se revisa antes, dado que S2 exige "BD conectada/migraciones iniciales" como entregable versionado.
