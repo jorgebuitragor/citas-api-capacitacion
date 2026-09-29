@@ -9,9 +9,18 @@ Este mapa traduce exclusivamente `PRD.md`, `RESTRICCIONES_TECNICAS.md` y `databa
 
 ## HU aprobadas para selección
 
+- [[HU-018-consultar-mis-citas]]
+- [[HU-019-cancelar-cita]]
+
 - [[HU-002-registrar-usuario]]
 - [[HU-003-iniciar-y-cerrar-sesion]]
 - [[HU-026-documentar-contrato-rest-base]]
+- [[HU-015-reservar-cita-general]]
+- [[HU-016-solicitar-cita-especializada]]
+- [[HU-017-decidir-cita-especializada]]
+- [[HU-014-consultar-disponibilidad-para-reserva]]
+- [[HU-020-solicitar-reprogramacion]]
+- [[HU-021-decidir-reprogramacion]]
 
 Las demás HU permanecen en `Pendiente de aprobación`.
 
@@ -52,3 +61,5 @@ No son estimaciones de tiempo ni capacidad; el orden reduce dependencias para un
 - El contrato REST se diseña durante el proyecto; [[HU-026-documentar-contrato-rest-base]] debe aprobarse antes de consumidores web estables.
 - El framework, rutas y estética de la web dependen del diseño aprobado de Stitch/Google AI Studio; [[HU-027-integrar-pantallas-por-rol]] no autoriza inventarlos.
 - Los mecanismos, destinatarios y credenciales de n8n/Gmail se configuran en S5/S6; las HU de EP-010 no cambian el núcleo funcional.
+
+

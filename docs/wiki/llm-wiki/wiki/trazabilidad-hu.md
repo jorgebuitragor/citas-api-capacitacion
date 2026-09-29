@@ -26,3 +26,57 @@
 
 - **HECHO:** 2026-09-24 — las migraciones Flyway V1–V4 quedaron incorporadas al cambio S3; V3/V4 evolucionan el volumen legado y los volúmenes nuevos usan la baseline `4` del esquema de referencia.
 - **PREGUNTA ABIERTA:** decidir si se commitea tal cual o se revisa antes, dado que S2 exige "BD conectada/migraciones iniciales" como entregable versionado.
+
+## HU-015 — Reservar cita general
+
+- **HECHO:** 2026-09-29 — HU aprobada y cerrada. La reserva general crea `APPROVED`, ocupa el slot, rechaza una segunda reserva con `409` y registra auditoría `SYSTEM`.
+- **EVIDENCIA:** `BookingIntegrationTest.rejectsSecondReservationWithoutCreatingAnotherAppointment`; contrato en `docs/contracts/appointments.md`; evidencia Red→Green en `docs/evidence/S3-booking-red-green.md`.
+- **VERIFICACIÓN:** API completa con 11 pruebas y frontend con typecheck, 3 pruebas Vitest y build correctos dentro de los contenedores Docker.
+
+## HU-016 — Solicitar cita especializada
+
+- **HECHO:** 2026-09-29 — HU aprobada y cerrada. Una solicitud nace `REQUESTED`, retiene todos los slots requeridos, exige dos slots consecutivos para 60 minutos y no permite una segunda solicitud sobre la franja retenida.
+- **EVIDENCIA:** `BookingIntegrationTest.specializedRequestReservesTwoConsecutiveSlotsAndRejectsPartialDuration` y `BookingIntegrationTest.secondSpecializedReservationCannotUseHeldSlots`; contrato y evidencia S3.
+- **DECISIÓN:** DEC-003 fija bloqueo pesimista, retención hasta decisión ADMIN y zona horaria `America/Bogota`.
+
+## HU-017 — Decidir cita especializada
+
+- **HECHO:** 2026-09-29 — HU aprobada y cerrada. ADMIN puede aprobar conservando slots o rechazar con motivo liberándolos; USER y PROFESSIONAL reciben `403`.
+- **EVIDENCIA:** `BookingIntegrationTest.adminApprovesOrRejectsRequestedAppointmentsAndKeepsAudit` y `BookingIntegrationTest.userAndProfessionalCannotDecideSpecializedRequests`; contrato y evidencia S3.
+- **HECHO:** las transiciones y su auditoría quedan verificadas mediante estado, actor, fuente, fecha y motivo aplicable.
+
+## HU-022 — Consultar agenda profesional
+
+- **DECISIÓN:** DEC-006 aprueba el inicio de implementación en el chat del goal S4 del 2026-09-29 (`decisiones.md`).
+- **HECHO:** 2026-09-29 — PROFESSIONAL consulta únicamente sus citas `APPROVED`, filtrables por día/semana y sede opcional; agenda ajena queda vacía/denegada por ownership resuelto desde el JWT.
+- **EVIDENCIA:** `BookingIntegrationTest.professionalSeesOnlyOwnApprovedAgendaFilteredByDayWeekAndLocation`, `BookingIntegrationTest.agendaAndClosureRequireProfessionalRole`; contrato en `docs/contracts/appointments.md`; verificación manual en navegador real contra backend y MySQL reales en `docs/evidence/goals-loops/S4/HU-022-HU-023-implementation.md`.
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` a `Completada` en `docs/wiki/scrum/historias-de-usuario/HU-022-consultar-agenda-profesional.md` pendiente de `scrum-spec-orchestrator`.
+
+## HU-023 — Cerrar atención
+
+- **DECISIÓN:** DEC-006 fija "pasada/aplicable" = `endAt <= ahora` en `America/Bogota`, sin tolerancia, igual para 30 y 60 minutos.
+- **HECHO:** 2026-09-29 — PROFESSIONAL marca una cita propia `APPROVED` y ya finalizada como `COMPLETED` o `NO_SHOW`; una cita futura, ajena o ya terminal no cambia (`409`/`404`); cada transición queda auditada con actor, fuente `USER` y fecha/hora del servidor.
+- **EVIDENCIA:** `BookingIntegrationTest.professionalCanCloseEligiblePastApprovedAppointmentAndRecordsAudit`, `BookingIntegrationTest.cannotCloseFutureOrForeignAppointment`; contrato y evidencia de implementación; verificación manual con auditoría comprobada directamente en MySQL (`appointment_status_history`).
+- **VERIFICACIÓN:** API con 25 pruebas en verde (confirmado en tres corridas consecutivas) y frontend con typecheck, 13 pruebas Vitest y build correctos dentro de los contenedores Docker.
+- **PREGUNTA ABIERTA:** misma pendiente que HU-022 sobre el campo `estado` en `docs/wiki/scrum/`.
+
+## HU-014 — Consultar disponibilidad para reserva
+
+- **HECHO:** 2026-09-29 — HU aprobada y cerrada. `GET /api/v1/availability` filtra por sede, especialidad, profesional y fecha, ofrece solo franjas completas de 30 o 60 minutos y excluye slots reservados por una cita o retenidos por una reprogramación `PENDING`.
+- **EVIDENCIA:** `BookingIntegrationTest.userCanSearchOnlyCompleteAvailabilityUsingAllFilters`, `BookingIntegrationTest.heldRescheduleSlotIsNotOfferedNorReservable`; contrato en `docs/contracts/appointments.md`.
+- **DECISIÓN:** DEC-003 ya fijaba concurrencia y retención; DEC-005 aprueba el cierre de la HU junto con HU-020/HU-021.
+
+## HU-020 — Solicitar reprogramación
+
+- **DECISIÓN:** DEC-005 aprueba la HU, descarta la subdivisión, fija la retención con la columna nueva `professional_slots.reschedule_request_id` y permite cambiar de sede entre las habilitadas del mismo profesional.
+- **HECHO:** 2026-09-29 — USER con cita propia `APPROVED` y futura solicita una nueva franja completa del mismo profesional y especialidad; la solicitud nace `PENDING`, retiene la nueva franja y la cita original conserva franja, slots y estado. Cita ajena `404`, cambio de profesional/especialidad `400`, franja ocupada o solicitud duplicada `409`, cita `REQUESTED` `409`; ningún caso deja cambios parciales.
+- **EVIDENCIA:** `BookingIntegrationTest.userRequestsReschedulePendingHoldsNewSlotAndKeepsOriginal`, `BookingIntegrationTest.rescheduleRequestRejectsForeignProfessionalChangeConflictAndIneligibleAppointment`, `BookingIntegrationTest.heldRescheduleSlotIsNotOfferedNorReservable`; migración `V7__add_reschedule_requests.sql`; `citas-web/src/components/MyAppointments.tsx` y `MyAppointments.test.tsx`.
+
+## HU-021 — Decidir reprogramación
+
+- **DECISIÓN:** DEC-005 fija que el rechazo exige motivo no vacío y la aprobación admite motivo opcional que se audita si se envía.
+- **HECHO:** 2026-09-29 — ADMIN aprueba de forma atómica liberando los slots originales, confirmando la retención como reserva firme y moviendo la franja de la cita; o rechaza liberando la retención y conservando la cita original intacta. Rechazo sin motivo `400`, solicitud ya decidida `409`, USER y PROFESSIONAL `403`; ninguna respuesta de error muta datos.
+- **EVIDENCIA:** `BookingIntegrationTest.adminApprovalSwapsSlotsAtomicallyAndKeepsAudit`, `BookingIntegrationTest.adminRejectionRequiresReasonReleasesHoldAndKeepsOriginalAppointment`, `BookingIntegrationTest.rescheduleInboxAndDecisionRequireAdminRoleAndRequestRequiresUserRole`; `citas-web/src/App.tsx` (`RescheduleInbox`) y `src/RescheduleInbox.test.tsx`.
+- **HECHO:** cada decisión registra un evento en `appointment_status_history` con actor ADMIN, fuente `ADMIN`, fecha/hora del servidor y motivo aplicable, además de persistir decisor, fecha y motivo en la solicitud.
+- **VERIFICACIÓN:** API `mvn -o test` con 25 pruebas, 0 fallos y 0 errores; frontend `npm run typecheck`, 23 pruebas Vitest y `npm run build` correctos, todo dentro de los contenedores Docker.
+- **RIESGO RESUELTO:** la falla de `AuthIntegrationTest.corsAllowsOnlyConfiguredOriginWithCredentials` no era del alcance: la variable de entorno `APP_CORS_ALLOWED_ORIGINS` del contenedor tiene más precedencia que `src/test/resources/application.yml`. Se hizo la prueba hermética fijando la propiedad en su `@SpringBootTest`.

@@ -27,3 +27,13 @@
 - `citas-web/.githooks/pre-commit`: bloqueó un archivo temporal staged con patrón `sk-…`; tras retirarlo ejecutó typecheck, 2 pruebas Vitest y build en verde.
 - `citas-api/.githooks/pre-commit`: bloqueó el mismo patrón temporal; tras retirarlo ejecutó `mvn test` en verde: 10 pruebas, 0 fallos y 0 errores.
 - El fixture temporal se eliminó antes de conservar los cambios.
+
+## Revalidación de cierre
+
+- Fecha: 2026-09-29.
+- El volumen Docker conservaba disponibilidad sintética de fechas ya pasadas; la migración staged V5 no podía corregirla porque Flyway ya la había aplicado.
+- Corrección compatible con Flyway: `V6__refresh_demo_availability.sql` crea de forma idempotente bloques y slots para el día siguiente sin editar V5 ni migraciones aplicadas.
+- API: `docker compose exec -T citas-api-dev mvn test` — 11 pruebas, 0 fallos y 0 errores.
+- Frontend: `docker compose exec -T citas-web-dev sh -lc 'npm run typecheck && npm run test && npm run build'` — typecheck correcto, 1 archivo Vitest y 3 pruebas correctas, build correcto.
+- Cobertura adicional: `BookingIntegrationTest.secondSpecializedReservationCannotUseHeldSlots` demuestra que una segunda solicitud especializada recibe `409` y no crea una cita adicional.
+- Hooks 2026-09-29: `citas-api/.githooks/pre-commit` y `citas-web/.githooks/pre-commit` bloquearon fixtures sintéticos con patrón de secreto y después terminaron en verde sin conservar dichos fixtures.

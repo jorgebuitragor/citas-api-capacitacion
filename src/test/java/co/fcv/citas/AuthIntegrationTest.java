@@ -27,7 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+// El origen CORS se fija aquí porque una variable de entorno APP_CORS_ALLOWED_ORIGINS del contenedor
+// tiene más precedencia que src/test/resources/application.yml y haría dependiente la prueba del host.
+@SpringBootTest(properties = "app.cors.allowed-origins=http://localhost:3000")
 @AutoConfigureMockMvc
 class AuthIntegrationTest {
     @Autowired MockMvc mvc;

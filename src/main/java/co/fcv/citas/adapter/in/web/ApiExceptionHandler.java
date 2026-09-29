@@ -22,9 +22,9 @@ class ApiExceptionHandler {
     @ExceptionHandler(InvalidCsrfException.class) ProblemDetail csrf() { return problem(HttpStatus.UNAUTHORIZED, "Authentication failed"); }
     @ExceptionHandler(BookingException.class) ProblemDetail booking(BookingException ex) {
         return switch (ex.reason()) {
-            case SLOT_UNAVAILABLE -> problem(HttpStatus.CONFLICT, ex.getMessage());
+            case SLOT_UNAVAILABLE, INVALID_STATE -> problem(HttpStatus.CONFLICT, ex.getMessage());
             case NOT_FOUND -> problem(HttpStatus.NOT_FOUND, ex.getMessage());
-            case INVALID_REQUEST, INVALID_STATE -> problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+            case INVALID_REQUEST -> problem(HttpStatus.BAD_REQUEST, ex.getMessage());
         };
     }
     @ExceptionHandler(MethodArgumentNotValidException.class) ProblemDetail validation(MethodArgumentNotValidException ex) {
