@@ -60,6 +60,20 @@
 - **VERIFICACIÓN:** API con 25 pruebas en verde (confirmado en tres corridas consecutivas) y frontend con typecheck, 13 pruebas Vitest y build correctos dentro de los contenedores Docker.
 - **PREGUNTA ABIERTA:** misma pendiente que HU-022 sobre el campo `estado` en `docs/wiki/scrum/`.
 
+## HU-024 — Consultar bandeja administrativa
+
+- **HECHO:** 2026-10-02 — HU aprobada vía DEC-007. ADMIN consulta solicitudes especializadas `REQUESTED` y reprogramaciones `PENDING` con filtros opcionales por sede, especialidad y fecha; roles no ADMIN reciben `403`.
+- **EVIDENCIA:** `BookingIntegrationTest.adminInboxFiltersRequestedAppointmentsAndPendingReschedulesByLocationProfessionalSpecialtyAndDate`, `BookingIntegrationTest.adminInboxRequiresAdminRoleAndRejectsNonPositiveFilters`; contrato en `docs/contracts/appointments.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-024-HU-025-implementation.md`.
+- **VERIFICACIÓN:** API con 29 pruebas en verde; frontend con typecheck, 29 pruebas Vitest y build correctos; verificación manual en navegador real contra backend y MySQL reales (filtro que excluye/incluye confirmado visualmente).
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-024 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
+## HU-025 — Consultar auditoría de estados
+
+- **HECHO:** 2026-10-02 — HU aprobada vía DEC-007. La matriz de visibilidad es por ownership: ADMIN ve cualquier cita, USER la suya como paciente, PROFESSIONAL las que atendió; fuera de alcance responde `404` sin revelar si la cita existe. No existen endpoints de edición/eliminación de auditoría.
+- **EVIDENCIA:** `BookingIntegrationTest.statusHistoryVisibleToAdminOwnerUserAndOwnerProfessionalButDeniedToOthers`, `BookingIntegrationTest.statusHistoryHasNoCrudEndpoints`; contrato en `docs/contracts/appointments.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-024-HU-025-implementation.md`.
+- **VERIFICACIÓN:** verificación manual en navegador real confirmó ownership de ADMIN y de USER sobre su propia cita (historial completo con actor/fuente/motivo); el rol PROFESSIONAL quedó cubierto solo por la prueba de integración y revisión de código, por no contar con credenciales reales de las cuentas semilla `prof.*@demo.invalid`.
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-025 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
 ## HU-014 — Consultar disponibilidad para reserva
 
 - **HECHO:** 2026-09-29 — HU aprobada y cerrada. `GET /api/v1/availability` filtra por sede, especialidad, profesional y fecha, ofrece solo franjas completas de 30 o 60 minutos y excluye slots reservados por una cita o retenidos por una reprogramación `PENDING`.

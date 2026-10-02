@@ -58,7 +58,9 @@ public class BookingService {
         return new CreatedAppointment(id, status, command.startAt(), endAt, context.specialty().durationMinutes());
     }
 
-    public List<PendingAppointment> pending() { return bookings.findPending(); }
+    public List<PendingAppointment> pending(Long locationId, Long professionalId, Long specialtyId, java.time.LocalDate date) {
+        return bookings.findPending(locationId, professionalId, specialtyId, date);
+    }
 
     public List<MyAppointmentView> myAppointments(String userId, AppointmentStatus status, java.time.LocalDate date) {
         LocalDateTime now = LocalDateTime.now(clock);
@@ -128,8 +130,23 @@ public class BookingService {
                 .orElseThrow(() -> new BookingException(BookingException.Reason.NOT_FOUND, "La solicitud de reprogramación no existe."));
     }
 
-    public List<RescheduleRequestDetail> rescheduleRequests(RescheduleStatus status) {
-        return bookings.findRescheduleRequests(status);
+    public List<RescheduleRequestDetail> rescheduleRequests(RescheduleStatus status, Long locationId, Long professionalId,
+                                                             Long specialtyId, java.time.LocalDate date) {
+        return bookings.findRescheduleRequests(status, locationId, professionalId, specialtyId, date);
+    }
+
+    /**
+     * HU-025. Matriz de ownership de DEC-007: ADMIN ve cualquier cita; USER, la suya como paciente;
+     * PROFESSIONAL, las que atendió. Fuera de alcance responde {@code NOT_FOUND} sin revelar si la cita existe.
+     */
+    public List<StatusHistoryEvent> statusHistory(BookingCommands.StatusHistoryQuery query) {
+        AppointmentOwnership ownership = bookings.findAppointmentOwnership(query.appointmentId())
+                .orElseThrow(() -> new BookingException(BookingException.Reason.NOT_FOUND, "La cita no existe."));
+        boolean owns = query.admin()
+                || ownership.patientUserId().equals(query.principalUserId())
+                || bookings.findProfessionalId(query.principalUserId()).map(id -> id == ownership.professionalId()).orElse(false);
+        if (!owns) throw new BookingException(BookingException.Reason.NOT_FOUND, "La cita no existe.");
+        return bookings.findStatusHistory(query.appointmentId());
     }
 
     /**

@@ -499,6 +499,83 @@ class BookingIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
+    @Test void adminInboxFiltersRequestedAppointmentsAndPendingReschedulesByLocationProfessionalSpecialtyAndDate() throws Exception {
+        String owner = registerUser();
+        String adminUserId = registerUser();
+        Slot specialized = slotFor("CARDIOLOGIA_ADULTO");
+        long requestedAppointment = appointmentId(reserve(owner, specialized).andExpect(status().isCreated()).andReturn());
+        createdAppointments.add(requestedAppointment);
+        List<Slot> general = freeSlotsFor("MEDICINA_GENERAL", 2);
+        long approvedAppointment = appointmentId(reserve(owner, general.get(0)).andExpect(status().isCreated()).andReturn());
+        createdAppointments.add(approvedAppointment);
+        long rescheduleRequestId = rescheduleId(requestReschedule(owner, approvedAppointment, general.get(1)).andExpect(status().isCreated()).andReturn());
+        String date = specialized.startAt().substring(0, 10);
+
+        mvc.perform(get("/api/v1/admin/appointments").header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN"))
+                        .param("locationId", Long.toString(specialized.locationId())).param("professionalId", Long.toString(specialized.professionalId()))
+                        .param("specialtyId", Long.toString(specialized.specialtyId())).param("date", date))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[?(@.id == '" + requestedAppointment + "')]").isNotEmpty());
+        mvc.perform(get("/api/v1/admin/appointments").header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN"))
+                        .param("specialtyId", Long.toString(specialized.specialtyId() + 1)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[?(@.id == '" + requestedAppointment + "')]").isEmpty());
+
+        mvc.perform(get("/api/v1/admin/reschedule-requests").header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN"))
+                        .param("locationId", Long.toString(general.get(1).locationId())).param("professionalId", Long.toString(general.get(1).professionalId()))
+                        .param("specialtyId", Long.toString(general.get(1).specialtyId())).param("date", general.get(1).startAt().substring(0, 10)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[?(@.id == '" + rescheduleRequestId + "')]").isNotEmpty());
+        mvc.perform(get("/api/v1/admin/reschedule-requests").header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN"))
+                        .param("locationId", Long.toString(general.get(1).locationId() + 1)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[?(@.id == '" + rescheduleRequestId + "')]").isEmpty());
+    }
+
+    @Test void adminInboxRequiresAdminRoleAndRejectsNonPositiveFilters() throws Exception {
+        String userId = registerUser();
+        mvc.perform(get("/api/v1/admin/appointments").header("Authorization", "Bearer " + accessToken(userId, "USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/admin/appointments")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/admin/appointments").header("Authorization", "Bearer " + accessToken(userId, "ADMIN"))
+                        .param("locationId", "0"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test void statusHistoryVisibleToAdminOwnerUserAndOwnerProfessionalButDeniedToOthers() throws Exception {
+        String owner = registerUser();
+        String stranger = registerUser();
+        String adminUserId = registerUser();
+        Slot slot = slotFor("MEDICINA_GENERAL");
+        long appointmentId = appointmentId(reserve(owner, slot).andExpect(status().isCreated()).andReturn());
+        createdAppointments.add(appointmentId);
+        String ownerProfessionalUserId = professionalUserId("prof.general@demo.invalid");
+        String otherProfessionalUserId = professionalUserId("prof.especialista@demo.invalid");
+
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].status").value("APPROVED"))
+                .andExpect(jsonPath("$.items[0].source").value("SYSTEM"))
+                .andExpect(jsonPath("$.items[0].actor").value(org.hamcrest.Matchers.nullValue()));
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(owner, "USER")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].appointmentId").value(Long.toString(appointmentId)));
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(ownerProfessionalUserId, "PROFESSIONAL")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.items[0].appointmentId").value(Long.toString(appointmentId)));
+
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(stranger, "USER")))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(otherProfessionalUserId, "PROFESSIONAL")))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", 999999).header("Authorization", "Bearer " + accessToken(adminUserId, "ADMIN")))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/appointments/{id}/status-history", appointmentId)).andExpect(status().isUnauthorized());
+    }
+
+    @Test void statusHistoryHasNoCrudEndpoints() throws Exception {
+        String owner = registerUser();
+        Slot slot = slotFor("MEDICINA_GENERAL");
+        long appointmentId = appointmentId(reserve(owner, slot).andExpect(status().isCreated()).andReturn());
+        createdAppointments.add(appointmentId);
+        mvc.perform(post("/api/v1/appointments/{id}/status-history", appointmentId).header("Authorization", "Bearer " + accessToken(owner, "ADMIN")))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
     private org.springframework.test.web.servlet.ResultActions requestReschedule(String userId, long appointmentId, Slot target) throws Exception {
         return requestReschedule(userId, appointmentId, target, target.professionalId(), target.specialtyId());
     }

@@ -25,7 +25,7 @@ public final class BookingPorts {
         void approve(long appointmentId, String adminUserId, LocalDateTime approvedAt);
         void reject(long appointmentId);
         void releaseSlots(long appointmentId);
-        List<PendingAppointment> findPending();
+        List<PendingAppointment> findPending(Long locationId, Long professionalId, Long specialtyId, LocalDate date);
         List<MyAppointment> findMyAppointments(String userId, AppointmentStatus status, LocalDate date);
         Optional<MyAppointment> lockAppointmentForUser(long appointmentId, String userId);
         void cancel(long appointmentId);
@@ -42,11 +42,16 @@ public final class BookingPorts {
         void confirmHeldSlots(long rescheduleRequestId, long appointmentId);
         void moveAppointmentWindow(long appointmentId, LocalDateTime startAt, LocalDateTime endAt);
         void releaseSlotsInRange(long appointmentId, LocalDateTime fromInclusive, LocalDateTime toExclusive);
-        List<RescheduleRequestDetail> findRescheduleRequests(RescheduleStatus status);
+        List<RescheduleRequestDetail> findRescheduleRequests(RescheduleStatus status, Long locationId, Long professionalId,
+                                                             Long specialtyId, LocalDate date);
         Optional<RescheduleRequestDetail> lockRescheduleRequest(long rescheduleRequestId);
         void decideRescheduleRequest(long rescheduleRequestId, RescheduleStatus status, String adminUserId,
                                     LocalDateTime decidedAt, String reason);
         Optional<RescheduleRequestDetail> findRescheduleRequestDetail(long rescheduleRequestId);
+
+        /** HU-025. Ownership mínimo de una cita para autorizar la consulta de auditoría sin bloquear la fila. */
+        Optional<AppointmentOwnership> findAppointmentOwnership(long appointmentId);
+        List<StatusHistoryEvent> findStatusHistory(long appointmentId);
     }
 
     public record Location(long id, String code, String name) { }
@@ -83,4 +88,8 @@ public final class BookingPorts {
                                           LocalDateTime previousStartAt, LocalDateTime previousEndAt,
                                           LocalDateTime requestedStartAt, LocalDateTime requestedEndAt,
                                           String decisionReason, LocalDateTime decidedAt) { }
+
+    public record AppointmentOwnership(long id, String patientUserId, long professionalId) { }
+    public record StatusHistoryEvent(long id, long appointmentId, AppointmentStatus status, String actorUserId,
+                                     String actorName, StatusSource source, LocalDateTime changedAt, String reason) { }
 }

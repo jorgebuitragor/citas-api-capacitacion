@@ -31,6 +31,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/appointments/*/closure").hasRole("PROFESSIONAL")
+                        .requestMatchers("/api/v1/appointments/*/status-history").hasAnyRole("ADMIN", "USER", "PROFESSIONAL")
                         .requestMatchers("/api/v1/professional/**").hasRole("PROFESSIONAL")
                         .requestMatchers("/api/v1/catalogs/**", "/api/v1/availability", "/api/v1/appointments", "/api/v1/appointments/**").hasRole("USER")
                         .anyRequest().authenticated())

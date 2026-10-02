@@ -128,17 +128,25 @@ public class BookingPersistenceAdapter implements BookingPorts.BookingRepository
 
     @Override public void releaseSlots(long appointmentId) { jdbc.update("UPDATE professional_slots SET appointment_id = NULL WHERE appointment_id = ?", appointmentId); }
 
-    @Override public List<PendingAppointment> findPending() {
-        return jdbc.query("""
+    @Override public List<PendingAppointment> findPending(Long locationId, Long professionalId, Long specialtyId, LocalDate date) {
+        StringBuilder sql = new StringBuilder("""
                 SELECT a.id, CONCAT(patient.first_name, ' ', patient.last_name), CONCAT(professional_user.first_name, ' ', professional_user.last_name),
                        l.name, s.name, s.appointment_duration_minutes, a.scheduled_start_at, a.scheduled_end_at, status.code
                 FROM appointments a JOIN appointment_statuses status ON status.id = a.status_id
                 JOIN users patient ON patient.id = a.patient_user_id
                 JOIN professionals p ON p.id = a.professional_id JOIN users professional_user ON professional_user.id = p.user_id
                 JOIN locations l ON l.id = a.location_id JOIN specialties s ON s.id = a.specialty_id
-                WHERE status.code = 'REQUESTED' ORDER BY a.scheduled_start_at, a.id
-                """, (rs, row) -> new PendingAppointment(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-                rs.getInt(6), rs.getObject(7, LocalDateTime.class), rs.getObject(8, LocalDateTime.class), AppointmentStatus.valueOf(rs.getString(9))));
+                WHERE status.code = 'REQUESTED'
+                """);
+        List<Object> parameters = new ArrayList<>();
+        if (locationId != null) { sql.append(" AND a.location_id = ?"); parameters.add(locationId); }
+        if (professionalId != null) { sql.append(" AND a.professional_id = ?"); parameters.add(professionalId); }
+        if (specialtyId != null) { sql.append(" AND a.specialty_id = ?"); parameters.add(specialtyId); }
+        if (date != null) { sql.append(" AND DATE(a.scheduled_start_at) = ?"); parameters.add(date); }
+        sql.append(" ORDER BY a.scheduled_start_at, a.id");
+        return jdbc.query(sql.toString(), (rs, row) -> new PendingAppointment(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
+                rs.getInt(6), rs.getObject(7, LocalDateTime.class), rs.getObject(8, LocalDateTime.class), AppointmentStatus.valueOf(rs.getString(9))),
+                parameters.toArray());
     }
 
     @Override public List<MyAppointment> findMyAppointments(String userId, AppointmentStatus status, LocalDate date) {
@@ -253,9 +261,16 @@ public class BookingPersistenceAdapter implements BookingPorts.BookingRepository
                 appointmentId, fromInclusive, toExclusive);
     }
 
-    @Override public List<RescheduleRequestDetail> findRescheduleRequests(RescheduleStatus status) {
-        return jdbc.query(rescheduleDetailSelect() + " WHERE status.code = ? ORDER BY r.requested_start_at ASC, r.id ASC",
-                (rs, row) -> rescheduleDetail(rs), status.name());
+    @Override public List<RescheduleRequestDetail> findRescheduleRequests(RescheduleStatus status, Long locationId, Long professionalId,
+                                                                          Long specialtyId, LocalDate date) {
+        StringBuilder sql = new StringBuilder(rescheduleDetailSelect()).append(" WHERE status.code = ?");
+        List<Object> parameters = new ArrayList<>(List.of(status.name()));
+        if (locationId != null) { sql.append(" AND r.requested_location_id = ?"); parameters.add(locationId); }
+        if (professionalId != null) { sql.append(" AND a.professional_id = ?"); parameters.add(professionalId); }
+        if (specialtyId != null) { sql.append(" AND a.specialty_id = ?"); parameters.add(specialtyId); }
+        if (date != null) { sql.append(" AND DATE(r.requested_start_at) = ?"); parameters.add(date); }
+        sql.append(" ORDER BY r.requested_start_at ASC, r.id ASC");
+        return jdbc.query(sql.toString(), (rs, row) -> rescheduleDetail(rs), parameters.toArray());
     }
 
     @Override public Optional<RescheduleRequestDetail> lockRescheduleRequest(long rescheduleRequestId) {
@@ -303,6 +318,26 @@ public class BookingPersistenceAdapter implements BookingPorts.BookingRepository
                 rs.getObject(10, LocalDateTime.class), rs.getObject(11, LocalDateTime.class),
                 rs.getObject(12, LocalDateTime.class), rs.getObject(13, LocalDateTime.class),
                 rs.getString(14), rs.getObject(15, LocalDateTime.class));
+    }
+
+    @Override public Optional<AppointmentOwnership> findAppointmentOwnership(long appointmentId) {
+        List<AppointmentOwnership> results = jdbc.query(
+                "SELECT id, patient_user_id, professional_id FROM appointments WHERE id = ?",
+                (rs, row) -> new AppointmentOwnership(rs.getLong(1), Long.toString(rs.getLong(2)), rs.getLong(3)), appointmentId);
+        return results.stream().findFirst();
+    }
+
+    @Override public List<StatusHistoryEvent> findStatusHistory(long appointmentId) {
+        return jdbc.query("""
+                SELECT h.id, h.appointment_id, status.code, h.changed_by_user_id, CONCAT(u.first_name, ' ', u.last_name),
+                       h.change_source, h.changed_at, h.reason
+                FROM appointment_status_history h
+                JOIN appointment_statuses status ON status.id = h.status_id
+                LEFT JOIN users u ON u.id = h.changed_by_user_id
+                WHERE h.appointment_id = ? ORDER BY h.changed_at ASC, h.id ASC
+                """, (rs, row) -> new StatusHistoryEvent(rs.getLong(1), rs.getLong(2), AppointmentStatus.valueOf(rs.getString(3)),
+                rs.getObject(4) == null ? null : Long.toString(rs.getLong(4)), rs.getString(5),
+                StatusSource.valueOf(rs.getString(6)), rs.getObject(7, LocalDateTime.class), rs.getString(8)), appointmentId);
     }
 
     private static String agendaSelect() {

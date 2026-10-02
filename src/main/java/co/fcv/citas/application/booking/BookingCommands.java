@@ -15,6 +15,7 @@ public final class BookingCommands {
     public record RescheduleDecision(String adminUserId, long rescheduleRequestId, DecisionType type, String reason) { }
     public record AgendaQuery(String professionalUserId, AgendaRange range, LocalDate date, Long locationId) { }
     public record CloseAppointment(String professionalUserId, long appointmentId, co.fcv.citas.domain.appointment.AppointmentStatus outcome) { }
+    public record StatusHistoryQuery(String principalUserId, boolean admin, long appointmentId) { }
     public enum DecisionType { APPROVE, REJECT }
     public enum AgendaRange { DAY, WEEK }
 }

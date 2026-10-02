@@ -312,9 +312,9 @@ Estado: **Aprobado por el usuario el 2026-09-29.** Conserva el formato existente
 - El puerto de persistencia se amplía con la resolución de `professionals.id` a partir del `user_id` autenticado, la consulta de agenda por rango/sede y el bloqueo/cierre de una cita propia. El dominio y los casos de uso no dependen de HTTP ni de JPA/JDBC.
 - No se implementa historia clínica, diagnóstico, tratamiento ni ningún criterio temporal distinto al aprobado en DEC-006.
 
-## HU-024 / HU-025 — bandeja administrativa y auditoría de estados (PROPUESTA)
+## HU-024 / HU-025 — bandeja administrativa y auditoría de estados
 
-Estado: **propuesta de contrato; pendiente de aprobación explícita de la matriz de visibilidad por rol**. Esta sección define únicamente consultas. No crea endpoints de edición o eliminación de auditoría.
+Estado: **aprobado — DEC-007 (2026-10-02)**. Esta sección define únicamente consultas. No crea endpoints de edición o eliminación de auditoría.
 
 Zona horaria: `America/Bogota`. Las fechas y horas se intercambian como valores locales ISO-8601 sin offset. Los identificadores de la respuesta JSON se serializan como cadenas.
 
@@ -436,7 +436,7 @@ Campos:
 
 Sin eventos, la ruta devuelve `200` con `items: []`. La API no promete paginación ni una garantía nueva de orden; el cliente no debe depender de un orden distinto al entregado por la consulta.
 
-#### Matriz de visibilidad propuesta — PENDIENTE DE APROBACIÓN
+#### Matriz de visibilidad — aprobada (DEC-007)
 
 | Rol | Puede consultar auditoría | Alcance |
 |---|---|---|
@@ -449,7 +449,7 @@ Para un rol habilitado que intenta consultar una cita fuera de su alcance, la AP
 
 No existen ni se publican `POST`, `PUT`, `PATCH` o `DELETE` para `appointment_status_history`. La auditoría se escribe únicamente como efecto de transiciones de estado y no se modifica como CRUD normal.
 
-#### Decisiones de implementación pendientes de aprobación
+#### Decisiones de implementación (confirmadas por DEC-007)
 
 - La regla de autorización de `/api/v1/appointments/{appointmentId}/status-history` debe evaluarse antes del matcher genérico de citas USER.
 - La consulta de auditoría debe hacer cumplir ownership de USER/PROFESSIONAL en el caso de uso o adaptador autorizado, no solo ocultar controles en la UI.

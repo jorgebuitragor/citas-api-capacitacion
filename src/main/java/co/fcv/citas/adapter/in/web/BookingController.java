@@ -17,6 +17,7 @@ import java.util.Locale;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -85,11 +86,15 @@ public class BookingController {
     }
 
     @GetMapping("/admin/reschedule-requests")
-    public RescheduleRequestsResponse rescheduleRequests(@RequestParam(defaultValue = "PENDING") String status) {
+    public RescheduleRequestsResponse rescheduleRequests(@RequestParam(defaultValue = "PENDING") String status,
+                                                         @RequestParam(required = false) @Positive Long locationId,
+                                                         @RequestParam(required = false) @Positive Long professionalId,
+                                                         @RequestParam(required = false) @Positive Long specialtyId,
+                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         RescheduleStatus requestedStatus;
         try { requestedStatus = RescheduleStatus.valueOf(status); }
         catch (IllegalArgumentException ex) { throw new BookingException(BookingException.Reason.INVALID_REQUEST, "Estado de reprogramación inválido."); }
-        return new RescheduleRequestsResponse(bookings.rescheduleRequests(requestedStatus).stream()
+        return new RescheduleRequestsResponse(bookings.rescheduleRequests(requestedStatus, locationId, professionalId, specialtyId, date).stream()
                 .map(BookingController::rescheduleResponse).toList());
     }
 
@@ -117,10 +122,21 @@ public class BookingController {
     }
 
     @GetMapping("/admin/appointments")
-    public List<PendingAppointmentResponse> pending(@RequestParam(defaultValue = "REQUESTED") String status) {
+    public List<PendingAppointmentResponse> pending(@RequestParam(defaultValue = "REQUESTED") String status,
+                                                     @RequestParam(required = false) @Positive Long locationId,
+                                                     @RequestParam(required = false) @Positive Long professionalId,
+                                                     @RequestParam(required = false) @Positive Long specialtyId,
+                                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         if (!"REQUESTED".equals(status)) throw new BookingException(BookingException.Reason.INVALID_REQUEST, "Solo se admiten solicitudes REQUESTED en S3.");
-        return bookings.pending().stream().map(value -> new PendingAppointmentResponse(id(value.id()), value.patientName(), value.professionalName(), value.locationName(),
+        return bookings.pending(locationId, professionalId, specialtyId, date).stream().map(value -> new PendingAppointmentResponse(id(value.id()), value.patientName(), value.professionalName(), value.locationName(),
                 value.specialtyName(), value.durationMinutes(), value.startAt(), value.endAt(), value.status().name())).toList();
+    }
+
+    @GetMapping("/appointments/{id}/status-history")
+    public StatusHistoryResponse statusHistory(Authentication authentication, @PathVariable @Positive long id) {
+        boolean admin = authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        return new StatusHistoryResponse(bookings.statusHistory(new BookingCommands.StatusHistoryQuery(authentication.getName(), admin, id)).stream()
+                .map(BookingController::statusHistoryResponse).toList());
     }
 
     @PostMapping("/admin/appointments/{id}/decision")
@@ -150,6 +166,11 @@ public class BookingController {
         return new AgendaAppointmentResponse(id(value.id()), value.patientName(), new RelatedResponse(id(value.locationId()), value.locationName()),
                 new RelatedResponse(id(value.specialtyId()), value.specialtyName()), value.startAt(), value.endAt(), value.durationMinutes(),
                 value.status().name(), value.closureAllowed());
+    }
+    private static StatusHistoryItemResponse statusHistoryResponse(BookingPorts.StatusHistoryEvent value) {
+        ActorResponse actor = value.actorUserId() == null ? null : new ActorResponse(value.actorUserId(), value.actorName());
+        return new StatusHistoryItemResponse(id(value.id()), id(value.appointmentId()), value.status().name(), actor,
+                value.source().name(), value.changedAt(), value.reason());
     }
     private static String id(long value) { return Long.toString(value); }
 
@@ -184,4 +205,8 @@ public class BookingController {
     public record AgendaResponse(List<AgendaAppointmentResponse> items) { }
     public record AgendaAppointmentResponse(String id, String patientName, RelatedResponse location, RelatedResponse specialty,
                                             LocalDateTime startAt, LocalDateTime endAt, int durationMinutes, String status, boolean closureAllowed) { }
+    public record StatusHistoryResponse(List<StatusHistoryItemResponse> items) { }
+    public record StatusHistoryItemResponse(String id, String appointmentId, String status, ActorResponse actor,
+                                            String source, LocalDateTime changedAt, String reason) { }
+    public record ActorResponse(String id, String name) { }
 }
