@@ -21,6 +21,8 @@ Este mapa traduce exclusivamente `PRD.md`, `RESTRICCIONES_TECNICAS.md` y `databa
 - [[HU-014-consultar-disponibilidad-para-reserva]]
 - [[HU-020-solicitar-reprogramacion]]
 - [[HU-021-decidir-reprogramacion]]
+- [[HU-024-consultar-bandeja-administrativa]]
+- [[HU-025-consultar-auditoria-de-estados]]
 
 Las demás HU permanecen en `Pendiente de aprobación`.
 

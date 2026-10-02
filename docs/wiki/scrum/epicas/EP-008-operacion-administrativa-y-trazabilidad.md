@@ -2,7 +2,7 @@
 id: EP-008
 tipo: epica
 titulo: "Operación administrativa y trazabilidad"
-estado: Pendiente de aprobación
+estado: Completada
 historias: ["[[HU-024-consultar-bandeja-administrativa]]", "[[HU-025-consultar-auditoria-de-estados]]"]
 dependencias: ["[[EP-005-descubrimiento-y-solicitud-de-citas]]"]
 ---
@@ -25,6 +25,6 @@ Operación auditable y priorizable.
 - [[HU-024-consultar-bandeja-administrativa]]
 - [[HU-025-consultar-auditoria-de-estados]]
 ## Criterio de completitud de la épica
-- [ ] Todas las HU están `Completada`, con datos de auditoría no editables como CRUD.
+- [x] Todas las HU están `Completada`, con datos de auditoría no editables como CRUD.
 ## Riesgos e incógnitas
-- Alcance de lectura de auditoría por rol y exposición de actor requieren contrato.
+- Resuelto por DEC-007 (2026-10-02): lectura de auditoría por ownership (ADMIN cualquiera, USER propia, PROFESSIONAL atendida); exposición de actor con `id`/`name` únicamente, `null` cuando la fuente es `SYSTEM`. Ver `docs/evidence/goals-loops/S4/HU-024-HU-025-implementation.md`.
