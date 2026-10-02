@@ -84,3 +84,10 @@
 - HECHO: se documentó `GET /api/v1/appointments/{appointmentId}/status-history` como consulta de solo lectura, sin endpoints CRUD de auditoría.
 - DECISIÓN PROPUESTA: la matriz de visibilidad sería ADMIN sobre cualquier cita, USER sobre sus citas y PROFESSIONAL sobre sus citas; la autorización se mantiene pendiente de aprobación explícita antes de implementar.
 - PREGUNTA ABIERTA: falta aprobar la matriz de visibilidad y el diseño específico de las pantallas antes de iniciar cambios backend/frontend.
+
+## [2026-10-02] decisión | S4 HU-024/HU-025 aprobación y matriz de auditoría
+
+- DECISIÓN: DEC-007 aprobada por el usuario: HU-024 (Consultar bandeja administrativa) aprobada sin cambios sobre su alcance y CA actuales. Para HU-025, se ratifica la matriz de visibilidad por ownership ya borrador en `docs/contracts/appointments.md:398` (ADMIN sobre cualquier cita, USER sobre sus propias citas, PROFESSIONAL sobre las que atendió), descartando la alternativa de restringir el endpoint solo a ADMIN que se evaluó primero en la misma conversación.
+- HECHO: se cerró la pregunta abierta registrada en `riesgos-y-preguntas-abiertas.md` y en las notas de HU-025 ("Matriz exacta de lectura por rol pendiente de contrato").
+- HECHO: queda habilitado el inicio de implementación de GOAL S4.04 (HU-024 y HU-025).
+- PREGUNTA ABIERTA: actualización formal del campo `estado` de HU-024/HU-025 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`, mismo patrón ya registrado para HU-022/HU-023.
