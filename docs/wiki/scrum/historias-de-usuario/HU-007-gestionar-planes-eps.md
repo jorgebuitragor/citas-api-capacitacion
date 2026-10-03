@@ -2,7 +2,7 @@
 id: HU-007
 tipo: historia-de-usuario
 titulo: "Gestionar planes de EPS"
-estado: Pendiente de aprobación
+estado: Completada
 epica: "[[EP-002-catalogos-configurables]]"
 esfuerzo: Medio
 sprint_sugerido: "Incremento 2"
@@ -23,9 +23,9 @@ relacionadas: ["[[HU-005-gestionar-perfil-y-afiliacion]]"]
 ## Esfuerzo
 **Nivel:** Medio. **Justificación:** relación padre-hijo e integridad para afiliación.
 ## Tareas de desarrollo
-- [ ] **T-01 — Modelar relación EPS-plan.** Dificultad: Medio. Migración y FK normalizada.
-- [ ] **T-02 — Implementar gestión y validación.** Dificultad: Medio. Garantizar pertenencia plan/EPS.
-- [ ] **T-03 — Integrar selección dependiente.** Dificultad: Medio. UX aprobada y estados vacíos/error.
+- [x] **T-01 — Modelar relación EPS-plan.** Dificultad: Medio. Migración y FK normalizada.
+- [x] **T-02 — Implementar gestión y validación.** Dificultad: Medio. Garantizar pertenencia plan/EPS.
+- [x] **T-03 — Integrar selección dependiente.** Dificultad: Medio. UX aprobada y estados vacíos/error.
 ## Criterios de aceptación
 ### CA-01 — Plan asociado
 **Dado** una EPS válida **Cuando** ADMIN crea o modifica un plan válido **Entonces** el plan queda asociado a esa EPS y consultable según contrato.
@@ -34,17 +34,22 @@ relacionadas: ["[[HU-005-gestionar-perfil-y-afiliacion]]"]
 ### CA-03 — Catálogo en uso
 **Dado** un plan referenciado **Cuando** ADMIN intenta retirarlo **Entonces** no se borra físicamente y puede desactivarse según la regla aplicable.
 ## Definition of Done
-- [ ] CA-01 a CA-03 validados con evidencia.
-- [ ] FK, migración, autorización, pruebas de relación y contrato verificados.
-- [ ] Trazabilidad Scrum actualizada.
+- [x] CA-01 a CA-03 validados con evidencia.
+- [x] FK, migración, autorización, pruebas de relación y contrato verificados.
+- [x] Trazabilidad Scrum actualizada.
 ## Evidencia de validación
 | Elemento | Resultado | Evidencia | Observación |
 |---|---|---|---|
-| CA-01 | Pendiente | — | — |
-| CA-02 | Pendiente | — | — |
-| CA-03 | Pendiente | — | — |
-| DoD | Pendiente | — | — |
+| CA-01 | Cumple | `CatalogIntegrationTest.createsPlanUnderExistingEpsAndValidatesEpsAndRegimeReferences`; verificación manual y E2E | El plan queda asociado a su EPS con su régimen; EPS inexistente `404`, régimen inexistente `400`, código duplicado en la misma EPS `409`. |
+| CA-02 | Parcial | La afiliación (HU-005) no está implementada, por lo que la regla "rechazar un plan ajeno al afiliarse" no es verificable aún | Lo que sí existe: la pertenencia plan/EPS queda garantizada por FK y por la ruta anidada `/eps/{epsId}/plans/{planId}` (plan de otra EPS responde `404`). La validación al afiliar queda para HU-005. |
+| CA-03 | Cumple | No existe endpoint de borrado; solo `active` | Un plan se desactiva, no se borra (RF-06). |
+| DoD | Cumple | `docs/contracts/catalogs.md`; backend 43/43; frontend 39/39; `docs/evidence/goals-loops/S4/HU-006-HU-007-HU-008-implementation.md` | FK `fk_eps_plans_eps`/`fk_eps_plans_regime` con `ON DELETE RESTRICT` (V9). |
 ## Historial de validación
 - 2026-09-17 — Creada en estado `Pendiente de aprobación`.
+- 2026-10-03 — DEC-009: el usuario aprueba el plan y el contrato.
+- 2026-10-03 — Implementada y verificada (backend, frontend, manual y E2E); evidencia en `docs/evidence/goals-loops/S4/HU-006-HU-007-HU-008-implementation.md`.
+- 2026-10-03 — El usuario instruye marcar formalmente `Completada` (excepción puntual a `AGENTS.md`, registrada en `decisiones.md`).
 ## Notas y decisiones
 - La definición de plan activo debe alinearse con la edición de afiliación.
+- La definición de "plan activo" alineada con la edición de afiliación queda para HU-005 (fuera de este incremento); aquí `active` solo se alterna.
+

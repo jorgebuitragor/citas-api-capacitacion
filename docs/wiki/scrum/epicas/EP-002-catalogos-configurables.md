@@ -2,7 +2,7 @@
 id: EP-002
 tipo: epica
 titulo: "Catálogos configurables"
-estado: Pendiente de aprobación
+estado: Completada
 historias: ["[[HU-006-gestionar-eps]]", "[[HU-007-gestionar-planes-eps]]", "[[HU-008-gestionar-especialidades]]"]
 dependencias: ["[[EP-001-acceso-perfil-y-catalogos-fijos]]"]
 ---
@@ -26,6 +26,6 @@ Datos consistentes que habilitan afiliación, oferta profesional y reserva.
 - [[HU-007-gestionar-planes-eps]]
 - [[HU-008-gestionar-especialidades]]
 ## Criterio de completitud de la épica
-- [ ] Todas las HU están `Completada` y los catálogos mantienen integridad 3FN.
+- [x] Todas las HU están `Completada` y los catálogos mantienen integridad 3FN.
 ## Riesgos e incógnitas
-- La semántica exacta de unicidad/nombre de cada catálogo requiere contrato y modelo propio.
+- Resuelto por DEC-009 (2026-10-03): unicidad por `code` (EPS) y por `(eps_id, code)` (planes) según el esquema de referencia; contrato en `docs/contracts/catalogs.md`.

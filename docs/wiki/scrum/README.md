@@ -25,6 +25,10 @@ Este mapa traduce exclusivamente `PRD.md`, `RESTRICCIONES_TECNICAS.md` y `databa
 - [[HU-025-consultar-auditoria-de-estados]]
 - [[HU-022-consultar-agenda-profesional]]
 - [[HU-023-cerrar-atencion]]
+- [[HU-004-recuperar-contrasena]]
+- [[HU-006-gestionar-eps]]
+- [[HU-007-gestionar-planes-eps]]
+- [[HU-008-gestionar-especialidades]]
 
 Las demás HU permanecen en `Pendiente de aprobación`.
 

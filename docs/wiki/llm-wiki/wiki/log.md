@@ -137,3 +137,12 @@
 - RIESGO DETECTADO Y RESUELTO: el preflight CORS (`OPTIONS`) rechazaba `PATCH` con `403` — `SecurityConfiguration.corsConfigurationSource` solo permitía `GET, POST, OPTIONS` desde que el proyecto empezó (ningún endpoint anterior había necesitado `PATCH`; las actualizaciones previas, como la decisión de solicitudes, usaban `POST .../decision`). Corregido agregando `"PATCH"` a `allowedMethods`. Se agregó `CatalogIntegrationTest.corsAllowsPatchForConfiguredOrigin` como prueba de regresión — ninguna prueba anterior lo detectaba porque `MockMvc` sin encabezado `Origin` no dispara el filtro CORS; solo un preflight real (navegador u `OPTIONS` explícito con `Access-Control-Request-Method`) lo expone. Este riesgo aplica a cualquier `PATCH`/método nuevo que se agregue en el futuro: conviene revisar `allowedMethods` cada vez.
 - PREGUNTA ABIERTA: actualización formal del campo `estado` de HU-006/HU-007/HU-008 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
 - HECHO: con esto, **los seis GOAL de S4 (S4.01–S4.06) quedan implementados y verificados.**
+
+## [2026-10-03] verificación | Prueba end-to-end integral de S4 y cierre formal en Scrum
+
+- HECHO: prueba end-to-end de todo lo implementado hasta S4.06 contra backend y MySQL reales, con los tres roles: 57/57 verificaciones API y recorrido manual por la UI de USER, ADMIN y PROFESSIONAL. Evidencia en `docs/evidence/goals-loops/S4/E2E-2026-10-03.md`. Suites: backend 43/43, frontend 39/39.
+- RIESGO DETECTADO Y RESUELTO: en servidor real, los errores del framework (400/404/405 vía `sendError`) salían como `401` porque el redespacho `ERROR` caía en `anyRequest().authenticated()`; `MockMvc` no lo reproduce. Corregido con `dispatcherTypeMatchers(ERROR).permitAll()` y `ErrorDispatchIntegrationTest` (servidor real; verificado que falla sin la corrección).
+- HECHO: cierra el pendiente de verificación manual del historial para PROFESSIONAL (HU-025), comprobado en la UI del profesional.
+- HECHO: el usuario instruyó marcar HU-004, HU-006, HU-007 y HU-008 como `Completada` en `docs/wiki/scrum/` (misma excepción puntual a `AGENTS.md` ya registrada para HU-022–025). Se actualizó el estado, las tareas, el DoD, la tabla de evidencia y el historial de cada una, el estado de EP-002 y la lista de HU aprobadas del README del backlog.
+- PREGUNTA ABIERTA: HU-007 CA-02 (rechazar un plan ajeno al afiliarse) queda `Parcial` — depende de HU-005 (afiliación), que no está implementada; la pertenencia plan/EPS sí está garantizada por FK y ruta anidada.
+
