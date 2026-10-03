@@ -2,7 +2,7 @@
 id: EP-007
 tipo: epica
 titulo: "Operación clínica del profesional"
-estado: Pendiente de aprobación
+estado: Completada
 historias: ["[[HU-022-consultar-agenda-profesional]]", "[[HU-023-cerrar-atencion]]"]
 dependencias: ["[[EP-006-gestion-de-citas-del-usuario]]"]
 ---
@@ -25,6 +25,6 @@ Seguimiento operativo sin exponer información ajena.
 - [[HU-022-consultar-agenda-profesional]]
 - [[HU-023-cerrar-atencion]]
 ## Criterio de completitud de la épica
-- [ ] Todas las HU están `Completada` y no revelan citas fuera del ownership.
+- [x] Todas las HU están `Completada` y no revelan citas fuera del ownership.
 ## Riesgos e incógnitas
-- Definición operativa de “aplicable” para cerrar una cita requiere aprobación.
+- Resuelto por DEC-006 (2026-09-29): "aplicable" = `endAt <= ahora` en `America/Bogota`, sin tolerancia, igual para 30 y 60 minutos. Ver `docs/evidence/goals-loops/S4/HU-022-HU-023-implementation.md`.
