@@ -1,24 +1,29 @@
 package co.fcv.citas.adapter.out.persistence;
 
+import co.fcv.citas.application.auth.AuthPorts.PasswordResetRepository;
 import co.fcv.citas.application.auth.AuthPorts.SessionRepository;
 import co.fcv.citas.application.auth.AuthPorts.UserRepository;
+import co.fcv.citas.domain.auth.PasswordResetToken;
 import co.fcv.citas.domain.auth.RefreshSession;
 import co.fcv.citas.domain.auth.Role;
 import co.fcv.citas.domain.auth.UserAccount;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthPersistenceAdapter implements UserRepository, SessionRepository {
+public class AuthPersistenceAdapter implements UserRepository, SessionRepository, PasswordResetRepository {
     private final UserJpaRepository users;
     private final RoleJpaRepository roles;
     private final RefreshSessionJpaRepository sessions;
+    private final PasswordResetTokenJpaRepository passwordResets;
     private final Clock clock;
-    public AuthPersistenceAdapter(UserJpaRepository users, RoleJpaRepository roles, RefreshSessionJpaRepository sessions, Clock clock) {
-        this.users = users; this.roles = roles; this.sessions = sessions; this.clock = clock;
+    public AuthPersistenceAdapter(UserJpaRepository users, RoleJpaRepository roles, RefreshSessionJpaRepository sessions,
+                                  PasswordResetTokenJpaRepository passwordResets, Clock clock) {
+        this.users = users; this.roles = roles; this.sessions = sessions; this.passwordResets = passwordResets; this.clock = clock;
     }
     @Override public boolean existsByEmail(String email) { return users.existsByEmail(email); }
     @Override public boolean existsByDocument(String type, String number) { return users.existsByDocumentTypeAndDocumentNumber(type, number); }
@@ -35,6 +40,11 @@ public class AuthPersistenceAdapter implements UserRepository, SessionRepository
         try { return users.findById(Long.parseLong(id)).map(this::map); }
         catch (NumberFormatException ex) { return Optional.empty(); }
     }
+    @Override public void updatePassword(String userId, String newPasswordHash) {
+        UserEntity entity = users.findById(Long.parseLong(userId)).orElseThrow();
+        entity.passwordHash = newPasswordHash;
+        users.save(entity);
+    }
     @Override public void save(RefreshSession source) {
         RefreshSessionEntity entity = new RefreshSessionEntity(); entity.userId = Long.parseLong(source.userId());
         entity.tokenHash = source.tokenHash(); entity.expiresAt = source.expiresAt(); entity.revokedAt = source.revokedAt(); sessions.save(entity);
@@ -42,6 +52,22 @@ public class AuthPersistenceAdapter implements UserRepository, SessionRepository
     @Override public Optional<RefreshSession> findSessionByTokenHash(String tokenHash) { return sessions.findByTokenHash(tokenHash).map(this::map); }
     @Override public void revoke(String tokenHash) {
         RefreshSessionEntity entity = sessions.findByTokenHash(tokenHash).orElseThrow(); entity.revokedAt = clock.instant(); sessions.save(entity);
+    }
+    @Override public void save(PasswordResetToken source) {
+        PasswordResetTokenEntity entity = new PasswordResetTokenEntity();
+        entity.userId = Long.parseLong(source.userId()); entity.tokenHash = source.tokenHash();
+        entity.expiresAt = source.expiresAt(); entity.consumedAt = source.consumedAt();
+        passwordResets.save(entity);
+    }
+    @Override public Optional<PasswordResetToken> findByTokenHash(String tokenHash) {
+        return passwordResets.findByTokenHash(tokenHash).map(this::map);
+    }
+    @Override public void consume(String tokenHash, Instant consumedAt) {
+        PasswordResetTokenEntity entity = passwordResets.findByTokenHash(tokenHash).orElseThrow();
+        entity.consumedAt = consumedAt; passwordResets.save(entity);
+    }
+    private PasswordResetToken map(PasswordResetTokenEntity e) {
+        return new PasswordResetToken(e.userId.toString(), e.tokenHash, e.expiresAt, e.consumedAt);
     }
     private UserAccount map(UserEntity e) {
         Set<Role> mappedRoles = e.roles.stream().map(r -> Role.valueOf(r.code)).collect(Collectors.toUnmodifiableSet());

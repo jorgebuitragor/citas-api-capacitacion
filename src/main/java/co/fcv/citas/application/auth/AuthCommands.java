@@ -8,6 +8,8 @@ public final class AuthCommands {
     public record RegisterCommand(String firstName, String lastName, String documentType,
                                   String documentNumber, String email, String phone, String password) { }
     public record LoginCommand(String email, String password) { }
+    public record PasswordResetRequestCommand(String email) { }
+    public record PasswordResetConfirmCommand(String token, String newPassword) { }
     public record TokenPair(String accessToken, String refreshToken, Instant accessExpiresAt, Instant refreshExpiresAt) { }
     public record RegisteredUser(String id, String email, Set<String> roles) { }
 }

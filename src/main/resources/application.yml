@@ -17,6 +17,7 @@ app:
     refresh-secret: ${JWT_REFRESH_SECRET}
     access-ttl: PT30M
     refresh-ttl: P14D
+    password-reset-ttl: PT15M
     refresh-cookie-secure: true
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:}

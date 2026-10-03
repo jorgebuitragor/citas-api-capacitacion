@@ -16,6 +16,7 @@ app:
     refresh-secret: test-refresh-secret-must-be-at-least-32-bytes-long
     access-ttl: PT30M
     refresh-ttl: P14D
+    password-reset-ttl: PT15M
     refresh-cookie-secure: true
   cors:
     allowed-origins: http://localhost:3000

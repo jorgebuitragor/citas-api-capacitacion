@@ -14,3 +14,6 @@ interface RoleJpaRepository extends JpaRepository<RoleEntity, Short> {
 interface RefreshSessionJpaRepository extends JpaRepository<RefreshSessionEntity, Long> {
     Optional<RefreshSessionEntity> findByTokenHash(String tokenHash);
 }
+interface PasswordResetTokenJpaRepository extends JpaRepository<PasswordResetTokenEntity, Long> {
+    Optional<PasswordResetTokenEntity> findByTokenHash(String tokenHash);
+}

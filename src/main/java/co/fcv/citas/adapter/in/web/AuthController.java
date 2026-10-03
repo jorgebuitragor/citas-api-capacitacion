@@ -58,6 +58,16 @@ public class AuthController {
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, expiredCookie(REFRESH_COOKIE, true).toString())
                 .header(HttpHeaders.SET_COOKIE, expiredCookie(CSRF_COOKIE, false).toString()).build();
     }
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<Void> requestPasswordReset(@Valid @RequestBody PasswordResetRequestBody request) {
+        auth.requestPasswordReset(new AuthCommands.PasswordResetRequestCommand(request.email()));
+        return ResponseEntity.accepted().build();
+    }
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmBody request) {
+        auth.confirmPasswordReset(new AuthCommands.PasswordResetConfirmCommand(request.token(), request.newPassword()));
+        return ResponseEntity.ok().build();
+    }
     @GetMapping("/me")
     public Map<String, Object> me(Authentication authentication) {
         return Map.of("subject", authentication.getName(), "roles", authentication.getAuthorities().stream().map(a -> a.getAuthority()).toList());
@@ -91,6 +101,8 @@ public class AuthController {
                                   @NotBlank @Email @Size(max = 254) String email, @NotBlank @Size(max = 30) String phone,
                                   @NotBlank @Size(max = 128) String password) { }
     public record LoginRequest(@NotBlank @Email @Size(max = 254) String email, @NotBlank @Size(max = 128) String password) { }
+    public record PasswordResetRequestBody(@NotBlank @Email @Size(max = 254) String email) { }
+    public record PasswordResetConfirmBody(@NotBlank String token, @NotBlank @Size(max = 128) String newPassword) { }
     public record RegistrationResponse(String id, String email, java.util.Set<String> roles) { }
     public record TokenResponse(String accessToken, String tokenType, Instant accessExpiresAt, String csrfToken) { }
 }

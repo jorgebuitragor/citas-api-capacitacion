@@ -1,5 +1,12 @@
 # Trazabilidad de historias de usuario
 
+## HU-004 — Recuperar contraseña
+
+- **HECHO:** 2026-10-03 — HU aprobada vía DEC-008 (duración 15 min, canal log del servidor, contrato REST completo). USER solicita recuperación por email (`202` siempre, sin revelar si la cuenta existe) y cambia su contraseña con un token de un solo uso.
+- **EVIDENCIA:** `AuthIntegrationTest.requestingResetForActiveEmailIssuesSingleUseTokenOnlyInLogNeverInResponse`, `requestingResetForUnknownOrInactiveEmailStillRespondsAcceptedWithoutIssuingToken`, `confirmRejectsExpiredOrUnknownToken`, `passwordResetRequestAndConfirmValidateInput`; contrato en `docs/contracts/authentication.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-004-implementation.md`.
+- **VERIFICACIÓN:** API con 33 pruebas en verde; frontend con typecheck, 34 pruebas Vitest y build correctos; verificación manual end-to-end en navegador real — token extraído del log real del proceso `mvn spring-boot:run`, login con contraseña nueva exitoso y con la anterior rechazado (`401`).
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-004 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
 ## HU-002 — Registrar usuario
 
 - **HECHO:** la evidencia automatizada backend valida registro, unicidad y hash de password mediante `AuthIntegrationTest`.
