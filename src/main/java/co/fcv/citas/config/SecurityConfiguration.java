@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/appointments/*/status-history").hasAnyRole("ADMIN", "USER", "PROFESSIONAL")
                         .requestMatchers("/api/v1/professional/**").hasRole("PROFESSIONAL")
                         .requestMatchers("/api/v1/catalogs/**", "/api/v1/availability", "/api/v1/appointments", "/api/v1/appointments/**").hasRole("USER")
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) -> problem(res, mapper, 401, "Authentication required"))
                         .accessDeniedHandler((req, res, ex) -> problem(res, mapper, 403, "Access denied")))
