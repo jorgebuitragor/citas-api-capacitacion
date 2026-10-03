@@ -1,5 +1,27 @@
 # Trazabilidad de historias de usuario
 
+## HU-006 — Gestionar EPS
+
+- **HECHO:** 2026-10-03 — HU aprobada vía DEC-009. ADMIN crea/consulta/actualiza EPS; `code` único e inmutable (`database/reference/db.sql`, DEC-001); sin borrado físico, solo `active`.
+- **EVIDENCIA:** `CatalogIntegrationTest.createsEpsListsItIncludingInactiveAndRejectsDuplicateCode`, `epsManagementRequiresAdminRole`; contrato en `docs/contracts/catalogs.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-006-HU-007-HU-008-implementation.md`.
+- **VERIFICACIÓN:** API con 41 pruebas en verde; frontend con typecheck, 39 pruebas Vitest y build correctos; verificación manual en navegador real (crear/desactivar EPS contra backend y MySQL reales).
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-006 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
+## HU-007 — Gestionar planes de EPS
+
+- **HECHO:** 2026-10-03 — HU aprobada vía DEC-009. ADMIN crea/consulta/actualiza planes bajo una EPS válida; `code` único por EPS (no global); régimen inexistente responde `400`, EPS inexistente responde `404`.
+- **EVIDENCIA:** `CatalogIntegrationTest.createsPlanUnderExistingEpsAndValidatesEpsAndRegimeReferences`, `plansManagementRequiresAdminRole`; contrato en `docs/contracts/catalogs.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-006-HU-007-HU-008-implementation.md`.
+- **VERIFICACIÓN:** verificación manual creó un plan real bajo "Atención Particular Demo" y lo desactivó contra backend y MySQL reales.
+- **RIESGO DETECTADO Y RESUELTO:** el preflight CORS rechazaba `PATCH` con `403` (`SecurityConfiguration` solo permitía `GET, POST, OPTIONS`; ningún endpoint anterior había usado `PATCH`). Corregido agregando `PATCH` a `allowedMethods`, con prueba de regresión `corsAllowsPatchForConfiguredOrigin` — las pruebas con `MockMvc` sin encabezado `Origin` no disparan el filtro CORS, por eso ninguna prueba previa lo detectó.
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-007 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
+## HU-008 — Gestionar especialidades
+
+- **HECHO:** 2026-10-03 — HU aprobada vía DEC-009. ADMIN crea/actualiza especialidades con duración exclusivamente 30 o 60 minutos; `code`/`durationMinutes`/`general`/`requiresAdminApproval` inmutables tras crear (decisión de ingeniería de DEC-009, para no corromper citas ya reservadas).
+- **EVIDENCIA:** `CatalogIntegrationTest.createsSpecialtyValidatesDurationAndKeepsCodeAndDurationImmutable`, `specialtiesManagementRequiresAdminRoleAndListIncludesInactive`; contrato en `docs/contracts/catalogs.md`; evidencia completa en `docs/evidence/goals-loops/S4/HU-006-HU-007-HU-008-implementation.md`.
+- **VERIFICACIÓN:** verificación manual creó "Dermatología (prueba)" (60 min) y la desactivó contra backend y MySQL reales; `specialties` ya sembradas (Medicina General, Cardiología Adulto, Ortopedia y Traumatología) se listaron correctamente en la vista ADMIN.
+- **PREGUNTA ABIERTA:** actualización formal del campo `estado` de HU-008 en `docs/wiki/scrum/` pendiente de `scrum-spec-orchestrator`.
+
 ## HU-004 — Recuperar contraseña
 
 - **HECHO:** 2026-10-03 — HU aprobada vía DEC-008 (duración 15 min, canal log del servidor, contrato REST completo). USER solicita recuperación por email (`202` siempre, sin revelar si la cuenta existe) y cambia su contraseña con un token de un solo uso.

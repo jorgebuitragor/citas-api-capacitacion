@@ -2,6 +2,7 @@ package co.fcv.citas.adapter.in.web;
 
 import co.fcv.citas.application.auth.AuthException;
 import co.fcv.citas.application.booking.BookingException;
+import co.fcv.citas.application.catalog.CatalogException;
 import java.net.URI;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,13 @@ class ApiExceptionHandler {
     @ExceptionHandler(BookingException.class) ProblemDetail booking(BookingException ex) {
         return switch (ex.reason()) {
             case SLOT_UNAVAILABLE, INVALID_STATE -> problem(HttpStatus.CONFLICT, ex.getMessage());
+            case NOT_FOUND -> problem(HttpStatus.NOT_FOUND, ex.getMessage());
+            case INVALID_REQUEST -> problem(HttpStatus.BAD_REQUEST, ex.getMessage());
+        };
+    }
+    @ExceptionHandler(CatalogException.class) ProblemDetail catalog(CatalogException ex) {
+        return switch (ex.reason()) {
+            case DUPLICATE_CODE -> problem(HttpStatus.CONFLICT, ex.getMessage());
             case NOT_FOUND -> problem(HttpStatus.NOT_FOUND, ex.getMessage());
             case INVALID_REQUEST -> problem(HttpStatus.BAD_REQUEST, ex.getMessage());
         };
