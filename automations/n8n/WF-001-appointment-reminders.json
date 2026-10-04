@@ -1,0 +1,341 @@
+{
+  "name": "WF-001 Recordatorio de citas próximas",
+  "nodes": [
+    {
+      "id": "a1",
+      "name": "Cada hora",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a2",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "apiBaseUrl",
+              "value": "http://host.docker.internal:8081",
+              "type": "string"
+            },
+            {
+              "id": "c2",
+              "name": "windowHours",
+              "value": 24,
+              "type": "number"
+            },
+            {
+              "id": "c3",
+              "name": "fromEmail",
+              "value": "recordatorios@example.test",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Valores no secretos. apiBaseUrl debe ser alcanzable desde n8n. La clave de servicio va en la credencial 'Citas API key', no aquí."
+    },
+    {
+      "id": "a3",
+      "name": "Consultar citas próximas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Configuración').item.json.apiBaseUrl }}/api/v1/automation/upcoming-appointments",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "hours",
+              "value": "={{ $('Configuración').item.json.windowHours }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Citas API key"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "a4",
+      "name": "Una cita por ítem",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        660,
+        200
+      ],
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "options": {}
+      }
+    },
+    {
+      "id": "a5",
+      "name": "Enviar recordatorio (SMTP / Mailpit)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        200
+      ],
+      "parameters": {
+        "fromEmail": "={{ $('Configuración').item.json.fromEmail }}",
+        "toEmail": "={{ $json.patient.email }}",
+        "subject": "=Recordatorio de cita: {{ $json.specialtyName }}",
+        "emailFormat": "text",
+        "text": "=Hola {{ $json.patient.name }},\n\nEste es un recordatorio de tu cita de laboratorio (datos sintéticos).\n\nEspecialidad: {{ $json.specialtyName }}\nProfesional: {{ $json.professionalName }}\nSede: {{ $json.locationName }}\nInicio: {{ $json.startAt }}\n\nMediSchedule – proyecto académico.",
+        "options": {}
+      },
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "Mailpit SMTP (laboratorio)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "a6",
+      "name": "Registrar SENT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuración').item.json.apiBaseUrl }}/api/v1/automation/appointments/{{ $('Una cita por ítem').item.json.appointmentId }}/reminders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: 'SENT', detail: 'SMTP aceptó el mensaje' }) }}",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Citas API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "a7",
+      "name": "Registrar FAILED",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuración').item.json.apiBaseUrl }}/api/v1/automation/appointments/{{ $('Una cita por ítem').item.json.appointmentId }}/reminders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: 'FAILED', detail: 'Fallo al enviar el correo' }) }}",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Citas API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "a8",
+      "name": "API no disponible",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        460
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1",
+              "name": "resultado",
+              "value": "API_NO_DISPONIBLE",
+              "type": "string"
+            },
+            {
+              "id": "e2",
+              "name": "detalle",
+              "value": "={{ $json.error?.message ?? 'sin detalle' }}",
+              "type": "string"
+            },
+            {
+              "id": "e3",
+              "name": "cuando",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Rama de error de la consulta (tras 3 reintentos). No envía nada y no marca ninguna cita; la próxima ejecución horaria reintenta. El resultado queda visible en el historial de ejecuciones de n8n."
+    },
+    {
+      "id": "a9",
+      "name": "Gmail (alternativa, desactivado)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        20
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.patient.email }}",
+        "subject": "=Recordatorio de cita: {{ $json.specialtyName }}",
+        "emailType": "text",
+        "message": "=Hola {{ $json.patient.name }}, recordatorio de tu cita de laboratorio: {{ $json.specialtyName }} el {{ $json.startAt }} en {{ $json.locationName }}.",
+        "options": {}
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (la crea cada persona)"
+        }
+      },
+      "disabled": true,
+      "notes": "Para usar Gmail: crear tu propia credencial OAuth2 en n8n, activar este nodo y desactivar el SMTP, reconectando las salidas igual que el nodo SMTP. Nunca versionar la credencial."
+    }
+  ],
+  "connections": {
+    "Cada hora": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Consultar citas próximas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar citas próximas": {
+      "main": [
+        [
+          {
+            "node": "Una cita por ítem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API no disponible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Una cita por ítem": {
+      "main": [
+        [
+          {
+            "node": "Enviar recordatorio (SMTP / Mailpit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar recordatorio (SMTP / Mailpit)": {
+      "main": [
+        [
+          {
+            "node": "Registrar SENT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar FAILED",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

@@ -146,3 +146,12 @@
 - HECHO: el usuario instruyó marcar HU-004, HU-006, HU-007 y HU-008 como `Completada` en `docs/wiki/scrum/` (misma excepción puntual a `AGENTS.md` ya registrada para HU-022–025). Se actualizó el estado, las tareas, el DoD, la tabla de evidencia y el historial de cada una, el estado de EP-002 y la lista de HU aprobadas del README del backlog.
 - PREGUNTA ABIERTA: HU-007 CA-02 (rechazar un plan ajeno al afiliarse) queda `Parcial` — depende de HU-005 (afiliación), que no está implementada; la pertenencia plan/EPS sí está garantizada por FK y ruta anidada.
 
+## [2026-10-04] avance | S5.01 WF-001 recordatorios — parte verificable sin n8n
+
+- DECISIÓN: DEC-010 aprobada por el usuario (ventana 24 h, destinatario = email sintético, deduplicación por cita y franja, fuente REST nueva con API key de servicio; n8n del trainer; Mailpit + nodo Gmail listo; S5.02 con escenario simulado).
+- HECHO: módulo `application/automation` (solo lectura de citas `APPROVED` próximas y registro de resultado), `ApiKeyAuthenticationFilter` (rol `AUTOMATION`, solo `/api/v1/automation/**`), migración `V10__add_appointment_reminders.sql`, `docs/contracts/automation.md`, `WF-001-appointment-reminders.json` (importable, `active: false`, sin secretos), Mailpit opcional y `AUTOMATION_API_KEY` en `docker-compose.yml`/`.env.example`.
+- HECHO: backend 49/49. Réplica nodo a nodo del workflow contra la API real y Mailpit: 9/9. Evidencia en `docs/evidence/goals-loops/S5/S5-01-WF001-iteracion-1.md`.
+- RIESGO DETECTADO Y RESUELTO: la suite de reservas fallaba (20/24) al pasar los días porque la disponibilidad sintética solo existe "para mañana" respecto de la fecha de la migración; `BookingIntegrationTest` reaplica el script idempotente de V6 antes de cada caso.
+- PREGUNTA ABIERTA: S5.01 queda PAUSADO — falta acceso al n8n del trainer (URL, MCP), una URL de la API alcanzable desde él y credenciales (Gmail/SMTP) que debe crear el usuario. No verificados: importación y ejecución en n8n, invocación MCP, envío por Gmail. HU-028 no se marca `Completada`.
+- PREGUNTA ABIERTA: S5.02 (contenido no confiable) pendiente; se hará con un escenario simulado.
+

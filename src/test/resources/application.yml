@@ -18,5 +18,7 @@ app:
     refresh-ttl: P14D
     password-reset-ttl: PT15M
     refresh-cookie-secure: true
+  automation:
+    api-key: test-automation-key-for-integration-tests
   cors:
     allowed-origins: http://localhost:3000

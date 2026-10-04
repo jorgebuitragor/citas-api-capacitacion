@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +32,18 @@ class BookingIntegrationTest {
     @Autowired ObjectMapper mapper;
     @Autowired JdbcTemplate jdbc;
     private final List<Long> createdAppointments = new ArrayList<>();
+
+    /**
+     * La disponibilidad sintética se siembra "para mañana" respecto del día en que corrió la migración,
+     * así que con los días no queda ninguna franja futura y toda la suite fallaba. V6 es idempotente
+     * (NOT EXISTS): reaplicarla garantiza franjas libres para mañana sin duplicar las existentes.
+     */
+    @BeforeEach void ensureTomorrowAvailability() throws Exception {
+        try (java.sql.Connection connection = jdbc.getDataSource().getConnection()) {
+            org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection,
+                    new org.springframework.core.io.ClassPathResource("db/migration/V6__refresh_demo_availability.sql"));
+        }
+    }
 
     @AfterEach void releaseFixtures() {
         for (Long id : createdAppointments) jdbc.update("DELETE FROM appointments WHERE id = ?", id);

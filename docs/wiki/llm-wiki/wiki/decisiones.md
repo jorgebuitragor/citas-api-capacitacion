@@ -67,3 +67,10 @@
 - **Consecuencia:** cierra la pregunta abierta de EP-002 ("La semántica exacta de unicidad/nombre de cada catálogo requiere contrato y modelo propio") y habilita el inicio de GOAL S4.06. La nota de HU-007 sobre alinear "plan activo" con la edición de afiliación queda fuera de alcance: HU-005 (editar afiliación) no es parte de este incremento.
 - **Actualización 2026-10-03:** el usuario instruyó marcar HU-004, HU-006, HU-007 y HU-008 como `Completada` en `docs/wiki/scrum/` (misma excepción puntual a `AGENTS.md` que en DEC-007). HU-007 CA-02 se dejó `Parcial` porque depende de HU-005 (afiliación), aún sin implementar.
 
+## DEC-010 — Aprobación de HU-028 (recordatorios, WF-001): reglas y fuente REST
+
+- **Estado:** aprobada.
+- **Fecha:** 2026-10-04.
+- **Decisión:** el usuario aprobó, para el flujo S5.01: **ventana** = citas `APPROVED` que empiezan en las próximas 24 h (configurable por parámetro, 1–72); **destinatario** = el email sintético del paciente; **deduplicación** = un recordatorio por cita y por franja (si la cita se reprograma, la nueva franja vuelve a ser elegible), registrada en la tabla `appointment_reminders`; **fuente REST** = nuevo endpoint de solo lectura `GET /api/v1/automation/upcoming-appointments`, autenticado con una API key de servicio (`X-Api-Key`, variable de entorno `AUTOMATION_API_KEY`), sin JWT de usuario, más `POST /api/v1/automation/appointments/{id}/reminders` para registrar el resultado. Contrato en `docs/contracts/automation.md`.
+- **Entorno aprobado:** n8n del trainer (el usuario lo configura; yo no manejo sus credenciales); entrega de la prueba controlada con **Mailpit local** y nodo Gmail incluido en el JSON sin credenciales; S5.02 con un escenario simulado.
+- **Consecuencia:** habilita el inicio de GOAL S5.01 en lo que no depende de n8n (endpoint, tabla, pruebas, JSON). La ejecución en n8n y la verificación MCP quedan pausadas hasta que el usuario aporte acceso. Este endpoint es el único cambio en `citas-api` y no altera el núcleo de reservas. La actualización formal de HU-028 en `docs/wiki/scrum/` sigue pendiente.
