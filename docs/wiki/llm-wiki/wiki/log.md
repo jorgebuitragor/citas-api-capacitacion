@@ -155,3 +155,8 @@
 - PREGUNTA ABIERTA: S5.01 queda PAUSADO — falta acceso al n8n del trainer (URL, MCP), una URL de la API alcanzable desde él y credenciales (Gmail/SMTP) que debe crear el usuario. No verificados: importación y ejecución en n8n, invocación MCP, envío por Gmail. HU-028 no se marca `Completada`.
 - PREGUNTA ABIERTA: S5.02 (contenido no confiable) pendiente; se hará con un escenario simulado.
 
+
+## 2026-10-04 — Datos semilla de laboratorio (V11)
+- HECHO: `V11__seed_demo_users_and_appointments.sql` probada en BD limpia de ambas líneas (Flyway y `db.sql`), con segunda ejecución sin duplicados; aplicada en la BD viva por Flyway. Backend 52/52 (`DemoSeedIntegrationTest` valida login y roles de las 13 cuentas activas, 401 de la cuenta inactiva y la cobertura de estados de citas y reprogramaciones).
+- DECISIÓN: DEC-011. Documentación para terceros en `DATOS_SEMILLA.md` (raíz).
+- HECHO: WF-001 renombrado en el n8n compartido con prefijo `[Jorge Buitrago]`; no se tocan workflows de compañeros.
