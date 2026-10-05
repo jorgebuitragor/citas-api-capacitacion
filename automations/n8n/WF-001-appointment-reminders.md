@@ -34,7 +34,10 @@
 
 `apiBaseUrl` en *Configuración* debe ser alcanzable **desde n8n** (si n8n es remoto, hace falta un túnel o una URL pública del laboratorio). El JSON se importa con `active: false`; no activarlo hasta validar la salida con una ejecución manual.
 
+## Convención de nombres en n8n compartido
+
+La instancia `https://fcvdev.app.n8n.cloud` es compartida con compañeros. Todo workflow que cree Claude en nombre de Jorge Buitrago lleva el prefijo `[Jorge Buitrago]` (p. ej. `[Jorge Buitrago] WF-001 Recordatorio de citas próximas`). Claude no abre, edita, ejecuta ni borra workflows que no tengan ese prefijo ni credenciales ajenas.
+
 ## Estado
 
-JSON generado y validado estructuralmente; **aún no importado ni ejecutado en n8n**. Ver `docs/evidence/goals-loops/S5/S5-01-WF001-iteracion-1.md`.
-
+JSON generado y validado estructuralmente. **Importado el 2026-10-04** en `https://fcvdev.app.n8n.cloud` (proyecto Personal, id `1IP8Oi3vqPUmZ97Y`), inactivo, sin credenciales creadas y **sin ejecutar**: n8n Cloud no alcanza la API local y el túnel público no fue autorizado. Ver `docs/evidence/goals-loops/S5/S5-01-WF001-iteracion-1.md`.

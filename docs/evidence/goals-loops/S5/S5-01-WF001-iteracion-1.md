@@ -52,3 +52,10 @@ No se modificó el núcleo de reservas: el único cambio en `citas-api` es este 
 4. Invocación MCP desde el agente (evidencia de la guía S5) — no verificable sin el punto 1.
 
 **Verifier (resumen de esta iteración):** PASS parcial. Ausencia de credenciales, selección exclusiva de `APPROVED` elegibles, manejo de fallo de API y registro de resultado: verificados. Importabilidad real y ejecución controlada en n8n: **no verificadas**.
+
+## Actualización 2026-10-04: importación en n8n Cloud
+
+- Importado en `https://fcvdev.app.n8n.cloud` (Personal) como `[Jorge Buitrago] WF-001 Recordatorio de citas próximas`, id `1IP8Oi3vqPUmZ97Y`, inactivo. 9 nodos, acentos correctos tras reimportar en UTF-8 (la primera pegada salió con codificación MacRoman).
+- Reglas del usuario: todo workflow creado por Claude lleva su nombre como prefijo; no se tocan workflows de compañeros.
+- Sin credenciales creadas y sin ejecución: la API local no es alcanzable desde n8n Cloud; la apertura de un túnel público fue denegada por el control de permisos y queda a decisión del usuario.
+- Sigue pendiente: URL alcanzable de la API, credencial `Citas API key`, Gmail OAuth2, ejecución manual, MCP, ciclo Builder/Verifier.
